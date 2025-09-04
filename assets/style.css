@@ -41,7 +41,7 @@ a:hover{text-decoration:underline}
   display: grid;
   place-items: center;
   text-align: center;
-  background-image: url('assets/jejustone.jpg'); /* 배경 이미지 추가 */
+  background-image: url('assets/jejustone.JPG'); /* 배경 이미지 추가 */
   background-size: cover; /* 배경 이미지를 화면 크기에 맞게 조정 */
   background-position: center; /* 배경 이미지를 중앙에 배치 */
   background-attachment: fixed; /* 배경 이미지 고정 */
