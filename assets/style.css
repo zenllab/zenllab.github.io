@@ -34,21 +34,24 @@ a:hover{text-decoration:underline}
 }
 
 /* Hero */
-/*.hero{display:grid;place-items:center;text-align:center;background:linear-gradient(180deg,#fff,#f6f8ff);padding:88px 0 70px;border-bottom:1px solid #eef0f3}
+.hero{display:grid;place-items:center;text-align:center;background:linear-gradient(180deg,#fff,#f6f8ff);padding:88px 0 70px;border-bottom:1px solid #eef0f3}
 .hero .hero-inner h1{font-size:clamp(34px,6vw,56px);margin:0 0 8px;letter-spacing:.3px}
-.hero .hero-inner p{margin:0 0 18px;color:var(--muted);font-size:clamp(16px,2.6vw,19px)}*/
+.hero .hero-inner p{margin:0 0 18px;color:var(--muted);font-size:clamp(16px,2.6vw,19px)}
+
+/*
 .hero {
   display: grid;
   place-items: center;
   text-align: center;
   background-image: url('assets/jejustone.JPG'); /* 배경 이미지 추가 */
-  background-size: cover; /* 배경 이미지를 화면 크기에 맞게 조정 */
-  background-position: center; /* 배경 이미지를 중앙에 배치 */
-  background-attachment: fixed; /* 배경 이미지 고정 */
-  padding: 88px 0 70px;
+/*  background-size: cover; /* 배경 이미지를 화면 크기에 맞게 조정 */
+/*  background-position: center; /* 배경 이미지를 중앙에 배치 */
+/*  background-attachment: fixed; /* 배경 이미지 고정 */
+/*  padding: 88px 0 70px;
   border-bottom: 1px solid #eef0f3;
   height: 100vh; /* 화면 전체 높이 */
-}
+/*}
+
 
 .hero .hero-inner h1 {
   font-size: clamp(34px, 6vw, 56px);
