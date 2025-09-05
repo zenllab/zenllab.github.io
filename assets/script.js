@@ -33,14 +33,31 @@ async function loadNewsPreview(){
     mount.innerHTML = '<li class="news-item"><span class="muted">Failed to load news preview.</span></li>';
   }
 }
-document.addEventListener('DOMContentLoaded', loadNewsPreview);
-const CLIENT_ID = anz9af0qp611lp0;  // Dropbox App Key
-const ACCESS_TOKEN = sl.u.AF9hUs1vpWzkUdBciuTHEmneIvCX91PCnmDI8TRen8C_8787m7V6BsgHW3K8wnPCeyntFrbvHg4ZY8uZ0zYZ15XhZ_44s18NWsqv9xXn4fjdbPUBEWyvfevvpJwqLBotZxLB_eYPTVxcRBLsvgVCIXmF2Q4is1qK40Du39-Vsh8txyQXbE99KOnqUNexKq6M-m-e5KOhm-OGEKSkaZ4MR_ubxbQx3Rxo1gvcCBAlmAX0l2nrkZ5rU39P2jPr0kPkKBrYpkNjGLaM7Kry1Ee_YWsqRL7f1i0dTNvQ8pq09wbbHQDSyxVspqxBOlF1ea4Hhdnxhn7imxGCMt7qxKWBg6RUlDy4RNiUyZUF4l1gFjf1wc9gGkrRnkhcGDX8BZ45Ahd3MPBiB0X0Tgv5IinD6nXC_PQuxT7JzeNydrJFFGLtCptJ25efD2Jc7C5Wjlzv1O6pGieSWOmje83xSgeaYoXeW7qqECbH3H1aRcVGD2xuabPbxnGiTsJVMbxMD-Zem5JhCcS4aOJjX8M7Q_52wvMDBZb93uXFMNpYanZJS2JjmV4y1-YpPG0rHJqimis7JVmSlvrI--Sw7v8eHmURSXl4kGUGnuhe-7TVRIMTC0MFZjaB2Wvk0HUBXguaFZhEYj3fecoSlq14XTo8lpkdgzPdYnh-5SzT7Xinqh2dDF9ZvErvq2ODkZgEWLFTZKKtpJURBtMkIwfZ0sr22HIs4OIxen1vma4vDIxARs118gdVDHo-Rm3rSnxMmhc_0zEyvnGaAl-tvHhaK2nQ-lYPKXbr6tfbmJ-GuURega04D14FrlZSozhMXrj0F8J9LPqkBVpRSCmry4GUa2JLKo9HaG2dYAnOJven5vLmD7TfmZoNYlmE5SPalrp2wfvYdX0mToDWEosbYY_e99l436FzoVLGGoerNcAi968FzFiJQ11yliZIoE2lN7JNoDf6FDgWUptwDjoMXsjmXe6euDIkOauN_iZQGcPYNCDLgibDd9F-iGkEZFvQ7jtdZZlvzQ04H5cKphdMSYMOHKEKY3q67m8VlFr6ni-mnjSWXd7OoIdlJUtKcPIlqxQSgbTXS30MZwx_MmfUIrCOiFlPpQbdkWIK06BRBgT_DAEDT2596-YpGPMJLTJUXA9X4FNAXy6QqM_I1prTV72u5xRgYTLbmxM6JUOIlmWtLsuV61i5_R-UVgC5kojlJQ2DOmdG21e7UQxI8aO_grKnkP4o_l1246uT4s--t5X9OxuKXJH45_8vS__9FRLwpCTZm46AEv3uxjeH6P7Xt6h6aKJfD60A2nBCgkNwdxx1mi1Zi21GSINzUw;  // Dropbox Access Token
 
-const dbx = new Dropbox.Dropbox({ accessToken: ACCESS_TOKEN });
 
-// 로그인 후, 인증된 사용자의 정보 처리 (로그인 후 리디렉션 처리)
-if (!localStorage.getItem('access_token')) {
-  // 인증되지 않은 사용자일 경우 로그인 페이지로 리디렉션
-  window.location.href = '/index.html';
+// 할 일 목록을 서버로 보내는 부분을 남겨두고, Dropbox 업로드는 서버 측에서 처리
+async function uploadReportToServer() {
+  const reportContent = document.getElementById('report-content').innerHTML; // 리포트 내용 가져오기
+
+  try {
+    const response = await fetch('/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content: reportContent }) // 서버로 리포트 내용 전달
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      alert('Report uploaded successfully!');
+    } else {
+      alert('Failed to upload report: ' + data.error);
+    }
+  } catch (error) {
+    console.error('Error uploading report:', error);
+  }
 }
+
+// 업로드 버튼에 이벤트 리스너 추가
+document.getElementById('uploadBtn').addEventListener('click', uploadReportToServer);

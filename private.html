@@ -145,51 +145,6 @@
               <p>Write your daily report here...</p>
             </div>
         </div>
-
-        <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
-        <script>
-        const CLIENT_ID = anz9af0qp611lp0; // Dropbox App Key
-        const ACCESS_TOKEN = sl.u.AF9hUs1vpWzkUdBciuTHEmneIvCX91PCnmDI8TRen8C_8787m7V6BsgHW3K8wnPCeyntFrbvHg4ZY8uZ0zYZ15XhZ_44s18NWsqv9xXn4fjdbPUBEWyvfevvpJwqLBotZxLB_eYPTVxcRBLsvgVCIXmF2Q4is1qK40Du39-Vsh8txyQXbE99KOnqUNexKq6M-m-e5KOhm-OGEKSkaZ4MR_ubxbQx3Rxo1gvcCBAlmAX0l2nrkZ5rU39P2jPr0kPkKBrYpkNjGLaM7Kry1Ee_YWsqRL7f1i0dTNvQ8pq09wbbHQDSyxVspqxBOlF1ea4Hhdnxhn7imxGCMt7qxKWBg6RUlDy4RNiUyZUF4l1gFjf1wc9gGkrRnkhcGDX8BZ45Ahd3MPBiB0X0Tgv5IinD6nXC_PQuxT7JzeNydrJFFGLtCptJ25efD2Jc7C5Wjlzv1O6pGieSWOmje83xSgeaYoXeW7qqECbH3H1aRcVGD2xuabPbxnGiTsJVMbxMD-Zem5JhCcS4aOJjX8M7Q_52wvMDBZb93uXFMNpYanZJS2JjmV4y1-YpPG0rHJqimis7JVmSlvrI--Sw7v8eHmURSXl4kGUGnuhe-7TVRIMTC0MFZjaB2Wvk0HUBXguaFZhEYj3fecoSlq14XTo8lpkdgzPdYnh-5SzT7Xinqh2dDF9ZvErvq2ODkZgEWLFTZKKtpJURBtMkIwfZ0sr22HIs4OIxen1vma4vDIxARs118gdVDHo-Rm3rSnxMmhc_0zEyvnGaAl-tvHhaK2nQ-lYPKXbr6tfbmJ-GuURega04D14FrlZSozhMXrj0F8J9LPqkBVpRSCmry4GUa2JLKo9HaG2dYAnOJven5vLmD7TfmZoNYlmE5SPalrp2wfvYdX0mToDWEosbYY_e99l436FzoVLGGoerNcAi968FzFiJQ11yliZIoE2lN7JNoDf6FDgWUptwDjoMXsjmXe6euDIkOauN_iZQGcPYNCDLgibDd9F-iGkEZFvQ7jtdZZlvzQ04H5cKphdMSYMOHKEKY3q67m8VlFr6ni-mnjSWXd7OoIdlJUtKcPIlqxQSgbTXS30MZwx_MmfUIrCOiFlPpQbdkWIK06BRBgT_DAEDT2596-YpGPMJLTJUXA9X4FNAXy6QqM_I1prTV72u5xRgYTLbmxM6JUOIlmWtLsuV61i5_R-UVgC5kojlJQ2DOmdG21e7UQxI8aO_grKnkP4o_l1246uT4s--t5X9OxuKXJH45_8vS__9FRLwpCTZm46AEv3uxjeH6P7Xt6h6aKJfD60A2nBCgkNwdxx1mi1Zi21GSINzUw; // Dropbox Access Token
-        const dbx = new Dropbox.Dropbox({ accessToken: ACCESS_TOKEN });
-        const reportTitleEl = document.getElementById('report-title');
-        const reportContentEl = document.getElementById('report-content');
-        const saveBtn = document.getElementById('saveBtn');
-        const uploadBtn = document.getElementById('uploadBtn');
-        function formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-        
-        function saveReport() {
-            const dateKey = formatDate(new Date());
-            localStorage.setItem(dateKey, reportContentEl.innerHTML);
-            alert('Report saved!');
-        }
-        
-        function uploadReportToDropbox() {
-            const fileName = formatDate(new Date()) + "_report.html";
-            const fileContent = reportContentEl.innerHTML;
-            
-            dbx.filesUpload({ path: `/${fileName}`, contents: fileContent })
-            .then(response => {
-                alert('Report uploaded successfully!');
-            })
-            .catch(error => {
-                console.error('Error uploading file', error);
-            });
-        }
-        
-        saveBtn.addEventListener('click', saveReport);
-        uploadBtn.addEventListener('click', uploadReportToDropbox);
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date();
-            reportTitleEl.textContent = `Daily Report - ${formatDate(today)}`;
-        });
-        </script>
-
-
         
         <div class="calendar-container">
             <div class="calendar-header">
@@ -363,6 +318,26 @@
     }
   });
 </script>
+
+<script>
+      // 클라이언트가 버튼을 클릭하면 서버에 파일 업로드 요청을 보냅니다.
+      document.getElementById('uploadBtn').addEventListener('click', function() {
+        fetch('/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ content: document.getElementById('report-content').innerHTML }) // 서버로 보낼 데이터
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('Report uploaded successfully!');
+        })
+        .catch(error => {
+          console.error('Error uploading file', error);
+        });
+      });
+    </script>
 
 </body>
 </html>
