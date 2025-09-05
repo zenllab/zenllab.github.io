@@ -34,20 +34,22 @@
 
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <script>
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on("init", user => {
-        if (user) {
-          // 이미 로그인된 경우, 바로 private 페이지로 이동
-          document.location.href = "/private.html";
-        }
-      });
-      
-      window.netlifyIdentity.on("login", user => {
-        // 로그인 성공 시 private 페이지로 이동
-        document.location.href = "/private.html";
-      });
-    }
-  </script>
+  // Netlify Identity가 초기화되면 실행
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.on('init', user => {
+      // 사용자 로그인 상태 체크
+      if (!user) {
+        // 로그인되지 않은 경우 로그인 페이지로 리디렉션
+        window.location.href = '/login.html';
+      }
+    });
+
+    window.netlifyIdentity.on('login', user => {
+      // 로그인 성공 시, private 페이지로 이동
+      window.location.href = '/private.html';
+    });
+  }
+</script>
 
 </body>
 </html>
