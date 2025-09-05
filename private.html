@@ -10,79 +10,104 @@
   <script defer src="assets/toDo.js"></script>
 
   <style>
-    /* 리스트의 기본 점 기호 제거 */
-    .js-toDoList {
-      list-style-type: none;
-      padding-left: 0;
-    }
+  /* 기본 폰트 크기 및 색상 설정 */
+  body, button, input, textarea {
+    font-family: Arial, sans-serif;
+    font-size: 16px; /* 기본 폰트 사이즈를 16px로 통일 */
+    line-height: 1.5;
+  }
 
-    /* X 버튼을 작게 만들기 */
-    .js-toDoList button {
-      font-size: 12px;
-      padding: 2px 5px;
-      background-color: transparent;
+  /* 네비게이션과 푸터 폰트 크기 조정 */
+  .nav a, .footer div {
+    font-size: 14px;
+  }
+
+  /* 메인 컨텐츠 영역의 폰트 사이즈 재설정 */
+  .private-wrap {
+    font-size: 16px;
+  }
+
+  /* 리스트의 기본 점 기호 제거 */
+  .js-toDoList {
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  /* To-Do 리스트 아이템과 버튼 크기 통일 */
+  .js-toDoList li {
+    font-size: 16px; /* 리스트 아이템 폰트 크기 */
+  }
+
+  .js-toDoList button {
+    font-size: 12px; /* X 버튼은 작게 유지 */
+    padding: 2px 5px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Rich Text Editor 스타일 */
+  .rich-text-editor {
+    width: 100%;
+    min-height: 200px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #f9f9f9;
+    margin-top: 20px;
+    font-size: 16px; /* 에디터 폰트 크기 통일 */
+  }
+
+  /* Calendar styles */
+  .calendar-container {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      margin: 20px 0;
+      background-color: #f0f0f0;
+  }
+
+  .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+  }
+
+  .calendar-header button {
+      background: none;
       border: none;
+      font-size: 1.5em; /* 기존 크기 유지 (부모 폰트의 1.5배) */
       cursor: pointer;
-    }
+  }
 
-    /* Rich Text Editor 스타일 */
-    .rich-text-editor {
-      width: 100%;
-      min-height: 200px;
-      border: 1px solid #ccc;
+  .calendar-header h3 {
+      font-size: 1.5em; /* 달력 제목 폰트 크기를 버튼과 동일하게 설정 */
+  }
+
+  .calendar-days, .calendar-dates {
+      font-size: 16px; /* 요일과 날짜 폰트 크기 통일 */
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+  }
+  
+  .calendar-days {
+      font-weight: bold;
+  }
+
+  .calendar-dates div {
       padding: 10px;
-      background-color: #f9f9f9;
-      margin-top: 20px;
-    }
+      cursor: pointer;
+  }
+  
+  .calendar-dates .selected-date {
+      background-color: #007bff;
+      color: white;
+      border-radius: 50%;
+  }
+</style>
 
-    /* Calendar styles */
-    .calendar-container {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        border-radius: 8px;
-        max-width: 400px;
-        margin: 20px 0;
-        background-color: #f0f0f0;
-    }
-
-    .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .calendar-header button {
-        background: none;
-        border: none;
-        font-size: 1.5em;
-        cursor: pointer;
-    }
-
-    .calendar-days {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        text-align: center;
-        font-weight: bold;
-    }
-
-    .calendar-dates {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        text-align: center;
-    }
-
-    .calendar-dates div {
-        padding: 10px;
-        cursor: pointer;
-    }
-    
-    .calendar-dates .selected-date {
-        background-color: #007bff;
-        color: white;
-        border-radius: 50%;
-    }
-  </style>
 </head>
 <body>
     <nav class="nav">
