@@ -13,35 +13,36 @@ function paintToDo(text, isChecked = false) {
     // 체크박스 추가
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.checked = isChecked; // 체크박스 상태를 로컬 스토리지에서 가져온 값으로 설정
-    
+    checkbox.checked = isChecked; // 체크박스 상태 복원
+
     const delBtn = document.createElement("button");
     delBtn.innerText = "X";
     
     const span = document.createElement("span");
     span.innerText = text;
 
+    // 체크되어 있으면 취소선 적용
+    if (isChecked) {
+        span.style.textDecoration = "line-through";
+    }
+
     li.appendChild(checkbox);
     li.appendChild(span);
     li.appendChild(delBtn);
     toDoList.appendChild(li);
 
-    // 체크박스를 클릭했을 때, 해당 항목에 완료 스타일을 추가/제거하는 기능
+    // 체크박스를 클릭했을 때, 해당 항목에 완료 스타일을 추가/제거
     checkbox.addEventListener("click", () => {
-        if (checkbox.checked) {
-            span.style.textDecoration = "line-through"; // 완료된 항목에 취소선 추가
-        } else {
-            span.style.textDecoration = "none"; // 체크 해제 시 취소선 제거
-        }
-        saveToDoList(); // 체크박스를 클릭할 때마다 상태 저장
+        span.style.textDecoration = checkbox.checked ? "line-through" : "none";
+        saveToDoList(); // 상태 저장
     });
 
-    // 삭제 버튼 클릭 시 해당 항목 삭제
+    // 삭제 버튼 클릭 시 항목 삭제
     delBtn.addEventListener("click", removeToDo);
 
-    // 로컬 스토리지에 저장
     saveToDoList();
 }
+
 
 // 삭제 함수
 function removeToDo(event) {
