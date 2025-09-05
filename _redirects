@@ -1,1 +1,2 @@
-/* /index.html 200
+/private.html /login.html 302!
+/private/* /login.html 302!
