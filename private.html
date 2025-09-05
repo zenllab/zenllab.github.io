@@ -7,6 +7,7 @@
   <link rel="icon" href="assets/favicon.svg">
   <link rel="stylesheet" href="assets/style.css">
   <script defer src="assets/script.js"></script>
+  <script defer src="assets/private.js"></script>
   <script defer src="assets/toDo.js"></script>
 
   <style>
@@ -102,7 +103,17 @@
     </nav>
 
     <main class="private-wrap">
-    <section id="app">
+    <section id="gate" class="gate" aria-label="Password gate">
+      <h2>Private Page</h2>
+      <p class="muted">Enter password to access your daily report &amp; todo.</p>
+      <form id="passwordForm">
+        <input id="pw" type="password" placeholder="Password">
+        <button class="btn" id="enterBtn" type="button">Enter</button>
+      </form>
+      <p class="muted" style="font-size:12px;margin-top:8px;">Tip: Change the password inside <code>assets/private.js</code>.</p>
+    </section>
+    
+    <section id="app" style="display:none;">
         <form class="js-toDoForm">
             <input type="text" placeholder="Write a to do" />
             <button type="button" class="js-addBtn">Add</button>
@@ -145,6 +156,11 @@
     </footer>
 
     <script>
+      const pwInput = document.getElementById('pw');
+      const passwordForm = document.getElementById('passwordForm');
+      const appSection = document.getElementById('app');
+      const gateSection = document.getElementById('gate');
+      
       const calendarDatesEl = document.getElementById('calendar-dates');
       const monthYearEl = document.getElementById('month-year');
       const prevBtn = document.getElementById('prev-month');
@@ -256,6 +272,25 @@
       // 페이지가 로드될 때 자동으로 Today 클릭
       document.addEventListener('DOMContentLoaded', function() {
       handleTodayClick();
+      });
+
+      passwordForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const password = pwInput.value;
+        if (password === 'yourpassword') {
+          gateSection.style.display = 'none';
+          appSection.style.display = 'block';
+          // 비밀번호 입력 성공 시, 'Today' 버튼의 클릭 핸들러 함수를 직접 호출
+          handleTodayClick();
+        } else {
+          alert('Incorrect password!');
+        }
+      });
+
+      pwInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+        }
       });
     </script>
 </body>
