@@ -138,8 +138,7 @@
         <div class="report-editor">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h3 id="report-title">Daily Report - YYYY.MM.DD</h3>
-                <!-- <button class="btn" id="saveBtn">Save Report</button> -->
-                <button class="btn" id="uploadBtn">Upload to Dropbox</button>
+                <button class="btn" id="saveBtn">Save Report</button>
             </div>
             <div class="rich-text-editor" id="report-content" contenteditable="true">
               <p>Write your daily report here...</p>
@@ -321,7 +320,7 @@
 
 <script>
       // 클라이언트가 버튼을 클릭하면 서버에 파일 업로드 요청을 보냅니다.
-      document.getElementById('uploadBtn').addEventListener('click', function() {
+      document.getElementById('saveBtn').addEventListener('click', function() {
         fetch('/upload', {
           method: 'POST',
           headers: {
