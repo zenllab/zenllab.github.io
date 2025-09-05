@@ -1,1 +1,8 @@
-/private/* /login.html 401!
+# 로그인 페이지는 항상 200 상태로 허용
+/login.html           /login.html        200
+
+# 인증된 사용자만 /private/* 접근 가능
+/private/*            /private/:splat    200  Role=member
+
+# 인증되지 않은 사용자는 로그인 페이지로 리디렉션
+/private/*            /login.html        302
