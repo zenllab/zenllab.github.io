@@ -319,24 +319,28 @@
 </script>
 
 <script>
-      // 클라이언트가 버튼을 클릭하면 서버에 파일 업로드 요청을 보냅니다.
-      document.getElementById('saveBtn').addEventListener('click', function() {
-        fetch('/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ content: document.getElementById('report-content').innerHTML }) // 서버로 보낼 데이터
-        })
-        .then(response => response.json())
-        .then(data => {
-          alert('Report uploaded successfully!');
-        })
-        .catch(error => {
-          console.error('Error uploading file', error);
-        });
-      });
-    </script>
+document.getElementById('saveBtn').addEventListener('click', function() {
+  fetch('http://localhost:3000/upload', { // ✨ 절대 경로로 변경
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ content: document.getElementById('report-content').innerHTML })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.success) {
+      alert('Report uploaded successfully!');
+    } else {
+      alert('Error uploading file: ' + JSON.stringify(data.error));
+    }
+  })
+  .catch(error => {
+    console.error('Error uploading file', error);
+    alert('An error occurred. Please check the console.');
+  });
+});
+</script>
 
 </body>
 </html>
