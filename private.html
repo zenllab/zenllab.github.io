@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Private · Zen Lab</title>
+  <link rel="icon" href="assets/favicon.svg">
+  <link rel="stylesheet" href="assets/style.css">
+  <script defer src="assets/script.js"></script>
+  <script defer src="assets/private.js"></script>
+  <script defer src="assets/toDo.js"></script>
+
+  <style>
+    /* 리스트의 기본 점 기호 제거 */
+    .js-toDoList {
+      list-style-type: none; /* 점 기호 제거 */
+      padding-left: 0; /* 기본 들여쓰기 제거 */
+    }
+
+    /* X 버튼을 작게 만들기 */
+    .js-toDoList button {
+      font-size: 12px; /* 글자 크기 작게 */
+      padding: 2px 5px; /* 버튼 크기 조정 */
+      background-color: transparent; /* 배경 투명 */
+      border: none; /* 테두리 제거 */
+      cursor: pointer; /* 마우스 커서 변경 */
+    }
+  </style>
+</head>
+<body>
+    <nav class="nav">
+        <a class="logo" href="index.html">Zen Lab</a>
+        <input id="menu-toggle" type="checkbox">
+         <label class="menu-button-container" for="menu-toggle">
+            <span class="menu-button"></span>
+        </label>
+        <ul class="menu">
+            <li><a href="news.html">🎉News</a></li>
+            <li><a href="research.html">Research</a></li>
+            <li><a href="members.html">Members</a></li>
+            <li><a href="publications.html">Publications</a></li>
+            <li><a href="teaching.html">Teaching</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <main class="private-wrap">
+    <!-- Password Gate -->
+     <section id="gate" class="gate" aria-label="Password gate">
+      <h2>Private Page</h2>
+      <p class="muted">Enter password to access your daily report &amp; todo.</p>
+      <form id="passwordForm">
+        <input id="pw" type="password" placeholder="Password">
+        <button class="btn" id="enterBtn" type="button">Enter</button>
+      </form>
+      <p class="muted" style="font-size:12px;margin-top:8px;">Tip: Change the password inside <code>assets/private.js</code>.</p>
+    </section>
+    
+    <!-- App -->
+     <section id="app" style="display:none;">
+        <form class="js-toDoForm">
+            <input type="text" placeholder="Write a to do" />
+            <button type="button" class="js-addBtn">Add</button> <!-- Add 버튼 -->
+        </form>
+        <ul class="js-toDoList">
+        </ul>
+    </section>
+    
+    <footer class="footer">
+        <div>&copy; <span id="year"></span> Zen Lab. All rights reserved.</div>
+    </footer>
+
+    <script>
+      const pwInput = document.getElementById('pw');
+      const passwordForm = document.getElementById('passwordForm');
+
+      // Enter 키를 눌렀을 때 폼 제출을 막는 이벤트 리스너 추가
+      passwordForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // 폼 제출을 막음
+      });
+
+      pwInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault(); // Enter 키의 기본 동작을 막음
+        }
+      });
+    </script>
+</body>
+</html>
