@@ -2,7 +2,7 @@
 // Password-protected private page with localStorage persistence.
 // ⚠️ Client-side password gate is not secure; use for light privacy only.
 // Change PASSWORD below.
-const PASSWORD = "wjsgidDhr";  // TODO: change this
+const PASSWORD = "zenlab";  // TODO: change this
 
 function qs(s,root=document){ return root.querySelector(s); }
 function qsa(s,root=document){ return [...root.querySelectorAll(s)]; }
