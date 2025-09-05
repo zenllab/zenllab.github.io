@@ -13,17 +13,75 @@
   <style>
     /* 리스트의 기본 점 기호 제거 */
     .js-toDoList {
-      list-style-type: none; /* 점 기호 제거 */
-      padding-left: 0; /* 기본 들여쓰기 제거 */
+      list-style-type: none;
+      padding-left: 0;
     }
 
     /* X 버튼을 작게 만들기 */
     .js-toDoList button {
-      font-size: 12px; /* 글자 크기 작게 */
-      padding: 2px 5px; /* 버튼 크기 조정 */
-      background-color: transparent; /* 배경 투명 */
-      border: none; /* 테두리 제거 */
-      cursor: pointer; /* 마우스 커서 변경 */
+      font-size: 12px;
+      padding: 2px 5px;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Rich Text Editor 스타일 */
+    .rich-text-editor {
+      width: 100%;
+      min-height: 200px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background-color: #f9f9f9;
+      margin-top: 20px;
+    }
+
+    /* Calendar styles */
+    .calendar-container {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 400px;
+        margin: 20px 0;
+        background-color: #f0f0f0;
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .calendar-header button {
+        background: none;
+        border: none;
+        font-size: 1.5em;
+        cursor: pointer;
+    }
+
+    .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .calendar-dates {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+    }
+
+    .calendar-dates div {
+        padding: 10px;
+        cursor: pointer;
+    }
+    
+    .calendar-dates .selected-date {
+        background-color: #007bff;
+        color: white;
+        border-radius: 50%;
     }
   </style>
 </head>
@@ -31,7 +89,7 @@
     <nav class="nav">
         <a class="logo" href="index.html">Zen Lab</a>
         <input id="menu-toggle" type="checkbox">
-         <label class="menu-button-container" for="menu-toggle">
+        <label class="menu-button-container" for="menu-toggle">
             <span class="menu-button"></span>
         </label>
         <ul class="menu">
@@ -45,8 +103,7 @@
     </nav>
 
     <main class="private-wrap">
-    <!-- Password Gate -->
-     <section id="gate" class="gate" aria-label="Password gate">
+    <section id="gate" class="gate" aria-label="Password gate">
       <h2>Private Page</h2>
       <p class="muted">Enter password to access your daily report &amp; todo.</p>
       <form id="passwordForm">
@@ -56,14 +113,42 @@
       <p class="muted" style="font-size:12px;margin-top:8px;">Tip: Change the password inside <code>assets/private.js</code>.</p>
     </section>
     
-    <!-- App -->
-     <section id="app" style="display:none;">
+    <section id="app" style="display:none;">
         <form class="js-toDoForm">
             <input type="text" placeholder="Write a to do" />
-            <button type="button" class="js-addBtn">Add</button> <!-- Add 버튼 -->
+            <button type="button" class="js-addBtn">Add</button>
         </form>
         <ul class="js-toDoList">
         </ul>
+
+        <div class="report-editor">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 id="report-title">Daily Report - YYYY.MM.DD</h3>
+                <button class="btn" id="saveBtn">Save Report</button>
+            </div>
+            <div class="rich-text-editor" id="report-content" contenteditable="true">
+              <p>Write your daily report here...</p>
+            </div>
+        </div>
+        
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <button id="prev-month">‹</button>
+                <h3 id="month-year"></h3>
+                <button id="next-month">›</button>
+                <button id="today-btn">Today</button>
+            </div>
+            <div class="calendar-days">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+            <div class="calendar-dates" id="calendar-dates"></div>
+        </div>
     </section>
     
     <footer class="footer">
@@ -73,15 +158,138 @@
     <script>
       const pwInput = document.getElementById('pw');
       const passwordForm = document.getElementById('passwordForm');
+      const appSection = document.getElementById('app');
+      const gateSection = document.getElementById('gate');
+      
+      const calendarDatesEl = document.getElementById('calendar-dates');
+      const monthYearEl = document.getElementById('month-year');
+      const prevBtn = document.getElementById('prev-month');
+      const nextBtn = document.getElementById('next-month');
+      const todayBtn = document.getElementById('today-btn');
+      
+      const reportTitleEl = document.getElementById('report-title');
+      const reportContentEl = document.getElementById('report-content');
+      const saveBtn = document.getElementById('saveBtn');
 
-      // Enter 키를 눌렀을 때 폼 제출을 막는 이벤트 리스너 추가
+      const today = new Date();
+      let currentDate = new Date();
+      let selectedDate = new Date();
+
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+      // 날짜를 YYYY-MM-DD 형식의 문자열로 변환하는 함수
+      function formatDate(date) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+      }
+      
+      function renderCalendar() {
+          const year = currentDate.getFullYear();
+          const month = currentDate.getMonth();
+
+          const firstDayOfMonth = new Date(year, month, 1).getDay();
+          const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+          
+          monthYearEl.textContent = `${monthNames[month]} ${year}`;
+          calendarDatesEl.innerHTML = '';
+          
+          for (let i = 0; i < firstDayOfMonth; i++) {
+              calendarDatesEl.innerHTML += '<div></div>';
+          }
+          
+          for (let i = 1; i <= lastDateOfMonth; i++) {
+              const dayEl = document.createElement('div');
+              dayEl.textContent = i;
+              dayEl.dataset.date = formatDate(new Date(year, month, i));
+              
+              if (dayEl.dataset.date === formatDate(selectedDate)) {
+                  dayEl.classList.add('selected-date');
+              }
+
+              dayEl.addEventListener('click', () => {
+                  selectedDate = new Date(year, month, i);
+                  updateReportDisplay();
+                  renderCalendar();
+              });
+              
+              calendarDatesEl.appendChild(dayEl);
+          }
+      }
+
+      function updateReportDisplay() {
+          const dateKey = formatDate(selectedDate);
+          reportTitleEl.textContent = `Daily Report - ${dateKey}`;
+          const savedContent = localStorage.getItem(dateKey);
+          
+          const isToday = formatDate(selectedDate) === formatDate(today);
+
+          if (isToday) {
+              reportContentEl.contentEditable = "true";
+              saveBtn.style.display = 'inline-block';
+          } else {
+              reportContentEl.contentEditable = "false";
+              saveBtn.style.display = 'none';
+          }
+
+          if (savedContent) {
+              reportContentEl.innerHTML = savedContent;
+          } else {
+              reportContentEl.innerHTML = '<p>No report for this date.</p>';
+          }
+      }
+
+      function saveReport() {
+          const dateKey = formatDate(selectedDate);
+          localStorage.setItem(dateKey, reportContentEl.innerHTML);
+          alert('Report saved!');
+      }
+
+      // 'Today' 버튼의 클릭 핸들러를 별도의 함수로 정의
+      function handleTodayClick() {
+          currentDate = new Date();
+          selectedDate = new Date();
+          updateReportDisplay();
+          renderCalendar();
+      }
+
+      prevBtn.addEventListener('click', () => {
+          currentDate.setMonth(currentDate.getMonth() - 1);
+          renderCalendar();
+      });
+
+      nextBtn.addEventListener('click', () => {
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          renderCalendar();
+      });
+
+      // 'Today' 버튼 이벤트 리스너를 정의된 함수로 연결
+      todayBtn.addEventListener('click', handleTodayClick);
+      
+      saveBtn.addEventListener('click', saveReport);
+
+      // 페이지가 로드될 때 자동으로 Today 클릭
+      document.addEventListener('DOMContentLoaded', function() {
+      handleTodayClick();
+      });
+
       passwordForm.addEventListener('submit', function(event) {
-        event.preventDefault(); // 폼 제출을 막음
+        event.preventDefault();
+        const password = pwInput.value;
+        if (password === 'yourpassword') {
+          gateSection.style.display = 'none';
+          appSection.style.display = 'block';
+          // 비밀번호 입력 성공 시, 'Today' 버튼의 클릭 핸들러 함수를 직접 호출
+          handleTodayClick();
+        } else {
+          alert('Incorrect password!');
+        }
       });
 
       pwInput.addEventListener('keydown', function(event) {
         if (event.key === 'Enter') {
-          event.preventDefault(); // Enter 키의 기본 동작을 막음
+          event.preventDefault();
         }
       });
     </script>
