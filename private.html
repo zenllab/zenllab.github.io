@@ -9,40 +9,6 @@
   <script defer src="assets/script.js"></script>
   <script defer src="assets/toDo.js"></script>
 
-  <!-- 로그인 상태 체크 및 리디렉션 스크립트 -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        if (window.netlifyIdentity) {
-          window.netlifyIdentity.on('init', user => {
-            // 로그인된 사용자가 아니면 로그인 페이지로 리디렉션
-            if (!user) {
-              window.location.href = '/login.html';
-            } else {
-              // 로그인된 경우 로컬 스토리지에 사용자 정보 저장
-              localStorage.setItem('user', JSON.stringify(user));
-            }
-          });
-
-          // 로그인 후 리디렉션
-          window.netlifyIdentity.on('login', user => {
-            localStorage.setItem('user', JSON.stringify(user));
-            window.location.href = '/private.html';
-          });
-
-          // 이미 로그인된 사용자 확인
-          const loggedInUser = localStorage.getItem('user');
-          if (loggedInUser) {
-            // 이미 로그인된 경우 private 페이지 접근
-            window.location.href = '/private.html';
-          }
-        } else {
-          // Netlify Identity 미설정 상태라면 로그인 페이지로 리디렉션
-          window.location.href = '/login.html';
-        }
-      });
-    </script>
-
   <style>
     /* 리스트의 기본 점 기호 제거 */
     .js-toDoList {
@@ -134,7 +100,6 @@
             <li><a href="contact.html">Contact</a></li>
         </ul>
     </nav>
-
 
     <main class="private-wrap">
     <section id="app">
@@ -293,6 +258,40 @@
       handleTodayClick();
       });
     </script>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script>
+  // 페이지가 로드될 때마다 로그인 상태 확인
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.netlifyIdentity) {
+      // Netlify Identity 초기화 후 로그인 여부 확인
+      window.netlifyIdentity.on('init', user => {
+        // 로그인된 사용자가 아니면 login.html로 리디렉션
+        if (!user) {
+          window.location.href = '/login.html';
+        } else {
+          // 로그인된 경우 로컬 스토리지에 로그인 상태 저장
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+      });
+
+      // 로그인 후에 리디렉션
+      window.netlifyIdentity.on('login', user => {
+        localStorage.setItem('user', JSON.stringify(user));
+        window.location.href = '/private.html';
+      });
+
+      // 페이지가 로드될 때, 이미 로그인된 사용자 확인
+      const loggedInUser = localStorage.getItem('user');
+      if (loggedInUser) {
+        // 이미 로그인된 경우, 계속 private 페이지에 접근
+        window.location.href = '/private.html';
+      }
+    } else {
+      // Netlify Identity 미설정 상태
+      window.location.href = '/login.html';
+    }
+  });
+</script>
 
 </body>
 </html>
