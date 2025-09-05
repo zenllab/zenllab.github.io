@@ -1,1 +1,2 @@
-/private/* /login.html 401!
+# 인증되지 않은 사용자는 로그인 페이지로 리디렉션
+/private/*            /login.html        302

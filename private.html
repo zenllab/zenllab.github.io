@@ -101,6 +101,7 @@
         </ul>
     </nav>
 
+
     <main class="private-wrap">
     <section id="app">
         <form class="js-toDoForm">
@@ -258,5 +259,39 @@
       handleTodayClick();
       });
     </script>
+    <!-- 로그인 상태 체크 및 리디렉션 스크립트 -->
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.on('init', user => {
+            // 로그인된 사용자가 아니면 로그인 페이지로 리디렉션
+            if (!user) {
+              window.location.href = '/login.html';
+            } else {
+              // 로그인된 경우 로컬 스토리지에 사용자 정보 저장
+              localStorage.setItem('user', JSON.stringify(user));
+            }
+          });
+
+          // 로그인 후 리디렉션
+          window.netlifyIdentity.on('login', user => {
+            localStorage.setItem('user', JSON.stringify(user));
+            window.location.href = '/private.html';
+          });
+
+          // 이미 로그인된 사용자 확인
+          const loggedInUser = localStorage.getItem('user');
+          if (loggedInUser) {
+            // 이미 로그인된 경우 private 페이지 접근
+            window.location.href = '/private.html';
+          }
+        } else {
+          // Netlify Identity 미설정 상태라면 로그인 페이지로 리디렉션
+          window.location.href = '/login.html';
+        }
+      });
+    </script>
+
 </body>
 </html>
