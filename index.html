@@ -2,28 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Home · ZenLab</title>
-<link rel="icon" href="assets/favicon.svg">
-<link rel="stylesheet" href="assets/style.css">
-<script defer src="assets/script.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home · ZenLab</title>
+    <link rel="icon" href="assets/favicon.svg">
+    <link rel="stylesheet" href="assets/style.css">
+    <script defer src="assets/script.js"></script>
+
   </head>
   <body>
     <nav class="nav">
-  <a class="logo" href="index.html">ZenLab</a>
-  <input id="menu-toggle" type="checkbox">
-  <label class="menu-button-container" for="menu-toggle">
-    <span class="menu-button"></span>
-  </label>
-  <ul class="menu">
-    <li><a href="news.html">🎉News</a></li>
-    <li><a href="research.html">Research</a></li>
-    <li><a href="members.html">Members</a></li>
-    <li><a href="publications.html">Publications</a></li>
-    <li><a href="teaching.html">Teaching</a></li>
-    <li><a href="contact.html">Contact</a></li>
-  </ul>
-</nav>
+      <a class="logo" href="index.html">ZenLab</a>
+      <input id="menu-toggle" type="checkbox">
+      <label class="menu-button-container" for="menu-toggle">
+        <span class="menu-button"></span>
+      </label>
+      <ul class="menu">
+        <li><a href="news.html">🎉News</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="members.html">Members</a></li>
+        <li><a href="publications.html">Publications</a></li>
+        <li><a href="teaching.html">Teaching</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
     <header class="hero">
       <div class="hero-inner">
         <h1>ZenLab</h1>
@@ -44,20 +45,33 @@
       </section>
       <section>
         <h1>Zen Lab Dropbox Report Upload</h1>
-        <button id="loginBtn">Login with Dropbox</button>
-        <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
-        <script>
-        const CLIENT_ID = anz9af0qp611lp0; // Dropbox App Key
-        const ACCESS_TOKEN = sl.u.AF9hUs1vpWzkUdBciuTHEmneIvCX91PCnmDI8TRen8C_8787m7V6BsgHW3K8wnPCeyntFrbvHg4ZY8uZ0zYZ15XhZ_44s18NWsqv9xXn4fjdbPUBEWyvfevvpJwqLBotZxLB_eYPTVxcRBLsvgVCIXmF2Q4is1qK40Du39-Vsh8txyQXbE99KOnqUNexKq6M-m-e5KOhm-OGEKSkaZ4MR_ubxbQx3Rxo1gvcCBAlmAX0l2nrkZ5rU39P2jPr0kPkKBrYpkNjGLaM7Kry1Ee_YWsqRL7f1i0dTNvQ8pq09wbbHQDSyxVspqxBOlF1ea4Hhdnxhn7imxGCMt7qxKWBg6RUlDy4RNiUyZUF4l1gFjf1wc9gGkrRnkhcGDX8BZ45Ahd3MPBiB0X0Tgv5IinD6nXC_PQuxT7JzeNydrJFFGLtCptJ25efD2Jc7C5Wjlzv1O6pGieSWOmje83xSgeaYoXeW7qqECbH3H1aRcVGD2xuabPbxnGiTsJVMbxMD-Zem5JhCcS4aOJjX8M7Q_52wvMDBZb93uXFMNpYanZJS2JjmV4y1-YpPG0rHJqimis7JVmSlvrI--Sw7v8eHmURSXl4kGUGnuhe-7TVRIMTC0MFZjaB2Wvk0HUBXguaFZhEYj3fecoSlq14XTo8lpkdgzPdYnh-5SzT7Xinqh2dDF9ZvErvq2ODkZgEWLFTZKKtpJURBtMkIwfZ0sr22HIs4OIxen1vma4vDIxARs118gdVDHo-Rm3rSnxMmhc_0zEyvnGaAl-tvHhaK2nQ-lYPKXbr6tfbmJ-GuURega04D14FrlZSozhMXrj0F8J9LPqkBVpRSCmry4GUa2JLKo9HaG2dYAnOJven5vLmD7TfmZoNYlmE5SPalrp2wfvYdX0mToDWEosbYY_e99l436FzoVLGGoerNcAi968FzFiJQ11yliZIoE2lN7JNoDf6FDgWUptwDjoMXsjmXe6euDIkOauN_iZQGcPYNCDLgibDd9F-iGkEZFvQ7jtdZZlvzQ04H5cKphdMSYMOHKEKY3q67m8VlFr6ni-mnjSWXd7OoIdlJUtKcPIlqxQSgbTXS30MZwx_MmfUIrCOiFlPpQbdkWIK06BRBgT_DAEDT2596-YpGPMJLTJUXA9X4FNAXy6QqM_I1prTV72u5xRgYTLbmxM6JUOIlmWtLsuV61i5_R-UVgC5kojlJQ2DOmdG21e7UQxI8aO_grKnkP4o_l1246uT4s--t5X9OxuKXJH45_8vS__9FRLwpCTZm46AEv3uxjeH6P7Xt6h6aKJfD60A2nBCgkNwdxx1mi1Zi21GSINzUw; // Dropbox Access Token
-        const dbx = new Dropbox.Dropbox({ accessToken: ACCESS_TOKEN });
-        document.getElementById('loginBtn').addEventListener('click', function() {
-          window.location.href = dbx.auth.getAuthenticationUrl('YOUR_REDIRECT_URL');
-        });
-        </script>
+        <button id="uploadBtn">Upload Report to Server</button>
       </section>
     </main>
     <footer class="footer">
   <div>&copy; <span id="year"></span> ZenLab. All rights reserved.</div>
+<footer class="footer">
+  <div>&copy; <span id="year"></span> ZenLab. All rights reserved.</div>
 </footer>
-  </body>
+
+<script>
+// 클라이언트가 버튼을 클릭하면 서버에 파일 업로드 요청을 보냅니다.
+document.getElementById('uploadBtn').addEventListener('click', function() {
+  fetch('/upload', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ content: 'Your report content here' }) // 서버로 보낼 데이터
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert('Report uploaded successfully!');
+        })
+        .catch(error => {
+          console.error('Error uploading file', error);
+        });
+      });
+      </script>
+      </body>
 </html>
