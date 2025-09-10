@@ -33,31 +33,4 @@ async function loadNewsPreview(){
     mount.innerHTML = '<li class="news-item"><span class="muted">Failed to load news preview.</span></li>';
   }
 }
-
-
-// 할 일 목록을 서버로 보내는 부분을 남겨두고, Dropbox 업로드는 서버 측에서 처리
-async function uploadReportToServer() {
-  const reportContent = document.getElementById('report-content').innerHTML; // 리포트 내용 가져오기
-
-  try {
-    const response = await fetch('/upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ content: reportContent }) // 서버로 리포트 내용 전달
-    });
-
-    const data = await response.json();
-    if (data.success) {
-      alert('Report uploaded successfully!');
-    } else {
-      alert('Failed to upload report: ' + data.error);
-    }
-  } catch (error) {
-    console.error('Error uploading report:', error);
-  }
-}
-
-// 업로드 버튼에 이벤트 리스너 추가
-document.getElementById('uploadBtn').addEventListener('click', uploadReportToServer);
+document.addEventListener('DOMContentLoaded', loadNewsPreview);
