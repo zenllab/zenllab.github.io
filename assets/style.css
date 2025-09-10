@@ -84,3 +84,37 @@ a:hover{text-decoration:underline}
 
 /* Minimal news (pubs) list spacing */
 .pubs{line-height:1.8}
+
+
+/* 공통: 뉴스 이미지/캡션 */
+.news-figure { margin: 8px 0 14px; }
+.news-image {
+  display: block;
+  width: 50%;      /* 기본: 데스크톱 */
+  height: auto;
+  border-radius: 8px;
+}
+.news-caption {
+  margin-top: 6px;
+  font-size: 0.95em;
+  color: #444;
+}
+
+/* 모바일: 화면이 좁으면 70%로 확대 */
+@media (max-width: 640px) {
+  .news-image { width: 70%; }
+}
+
+/* 선택: 아주 넓은 화면에서 40%로 살짝 축소 */
+@media (min-width: 1280px) {
+  .news-image { width: 40%; }
+}
+
+/* index.html의 뉴스 미리보기(#news-preview)에서만 완전히 숨김 */
+#news-preview figure,
+#news-preview figcaption,
+#news-preview img,
+#news-preview .news-image,
+#news-preview .news-caption {
+  display: none !important;
+}
