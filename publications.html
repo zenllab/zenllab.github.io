@@ -1,36 +1,419 @@
 <!doctype html>
 <html lang="en">
-  <head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Publications · ZenLab</title>
-<link rel="icon" href="assets/favicon.svg">
-<link rel="stylesheet" href="assets/style.css">
-<script defer src="assets/script.js"></script></head>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Publications · ZenLab</title>
+    <link rel="icon" href="assets/favicon.svg">
+    <link rel="stylesheet" href="assets/style.css">
+    <script defer src="assets/script.js"></script>
+    <style>
+      /* --- Publications page specific styles --- */
+      .pubs-root { margin-top: 1rem; }
+      details.year-group { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin: .75rem 0; box-shadow: 0 1px 0 rgba(0,0,0,0.02); }
+      details.year-group[open] { border-color: #d1d5db; }
+      summary.year-summary { list-style: none; cursor: pointer; padding: .9rem 1rem; display: flex; align-items: center; justify-content: space-between; font-weight: 700; }
+      summary.year-summary::-webkit-details-marker { display: none; }
+      .year-left { display: inline-flex; align-items: center; gap: .6rem; }
+      .year-caret { transition: transform .2s ease; display: inline-block; }
+      details[open] .year-caret { transform: rotate(90deg); }
+      .year-label { font-size: 1.1rem; }
+      .counts { display: inline-flex; gap: .4rem; }
+      .badge { font-size: .78rem; border: 1px solid #e5e7eb; padding: .15rem .5rem; border-radius: 9999px; }
+      .year-body { padding: .25rem 1rem 1rem; }
+      .cat { margin-top: .6rem; }
+      .cat h3 { margin: .4rem 0 .2rem; font-size: 1rem; }
+      ol.pubs { padding-left: 1.25rem; margin: .2rem 0 0; }
+      ol.pubs > li { margin: .35rem 0; }
+      .muted { color: #6b7280; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+      /* small screens */
+      @media (max-width: 520px){ .counts{ display:none; } }
+    </style>
+  </head>
   <body>
     <nav class="nav">
-  <a class="logo" href="index.html">ZenLab</a>
-  <input id="menu-toggle" type="checkbox">
-  <label class="menu-button-container" for="menu-toggle">
-    <span class="menu-button"></span>
-  </label>
-  <ul class="menu">
-    <li><a href="news.html">🎉News</a></li>
-    <li><a href="research.html">Research</a></li>
-    <li><a href="members.html">Members</a></li>
-    <li><a href="publications.html">Publications</a></li>
-    <li><a href="teaching.html">Teaching</a></li>
-    <li><a href="contact.html">Contact</a></li>
-  </ul>
-</nav>
+      <a class="logo" href="index.html">ZenLab</a>
+      <input id="menu-toggle" type="checkbox">
+      <label class="menu-button-container" for="menu-toggle">
+        <span class="menu-button"></span>
+      </label>
+      <ul class="menu">
+        <li><a href="news.html">🎉News</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="members.html">Members</a></li>
+        <li><a href="publications.html" aria-current="page">Publications</a></li>
+        <li><a href="teaching.html">Teaching</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+
     <main class="container">
       <h1>Publications</h1>
-      <p>Under construction.</p>
-      <ol class="pubs">
-        <li><b>Last, F.</b>, Coauthor, <i>Paper title</i>, Journal, Year. <a href="#">PDF</a></li>
-      </ol>
+      <p class="muted">Still under construction...</p>
+
+      <div id="pubs-root" class="pubs-root"></div>
+
+      <noscript>
+        <p><b>Note:</b> 이 페이지는 JavaScript로 목록을 생성합니다. 브라우저에서 JavaScript를 활성화하세요.</p>
+      </noscript>
     </main>
+
     <footer class="footer">
-  <div>&copy; <span id="year"></span> ZenLab. All rights reserved.</div>
-</footer>
+      <div>&copy; <span id="year"></span> ZenLab. All rights reserved.</div>
+    </footer>
+
+    <script>
+      // ----- Data model: 연도별로 papers / conferences 구분 -----
+      // 실제 데이터로 교체하세요. (예시는 자리표시자입니다)
+      const PUBS_BY_YEAR = {
+        2025: {
+          papers: [],
+          conferences: []
+        },
+        2024: {
+          papers: [],
+          conferences: []
+        },
+        // --- Added empty years (fill in later) ---
+        2023: { papers: [
+           {
+              authors: 'Noriyuki Nakatani, Ryo Shinke, <b>Xiangyu Quan</b>, Takashi Murata, Osamu Matoba',
+              title: 'Deep learning based image quality improvement of a light-field microscope integrated with an epi-fluorescence microscope ',
+              venue: 'Optics Continuum 2(4) 727-737',
+              year: 2023,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1364/OPTCON.481845' }
+              ]
+            },          
+            {
+              authors: 'Naru Yoneda, <b>Xiangyu Quan</b>, Osamu Matoba',
+              title: 'Single-shot generalized Hanbury Brown–Twiss experiments using a polarization camera for target intensity reconstruction in scattering media ',
+              venue: 'Optics Letters 48(3) 632-635',
+              year: 2023,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1364/OL.479475' }
+              ]
+            }, 
+        ], conferences: [
+
+        ] },
+        2022: { papers: [
+           {
+              authors: 'Daisuke Kato, <b>Xiangyu Quan</b>, Yuta Tanisumi, Zhongtian Guo, Mitsuhiro Morita, Tetsuya Takiguchi, Osamu Matoba, Hiroaki Wake',
+              title: 'Evaluation and Manipulation of Neural Activity using Two-Photon Holographic Microscopy ',
+              venue: 'Journal of visualized experiments:JoVE 187',
+              year: 2022,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.3791/64205' }
+              ]
+            },          
+            {
+              authors: 'Manoj Kumar, Osamu Matoba, <b>Xiangyu Quan</b>, Sudheesh K Rajput, Mitsuhiro Morita, Yasuhiro Awatsuji',
+              title: 'Quantitative dynamic evolution of physiological parameters of RBC by highly stable digital holographic microscopy',
+              venue: 'Optics and Lasers in Engineering 151 106887',
+              year: 2022,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1016/j.optlaseng.2021.106887' }
+              ]
+            },   
+        ], conferences: [
+
+        ] },
+        2021: { papers: [
+            {
+              authors: '<b>Xiangyu Quan</b>, Daisuke Kato, Vincent Daria, Osamu Matoba, Hiroaki Wake',
+              title: 'Multimodal Microscopy: Fast Acquisition of Quantitative Phase and Fluorescence Imaging in 3D Space ',
+              venue: 'Neuroscience research 179 57-64',
+              year: 2021,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1016/j.neures.2021.10.012' }
+              ]
+            },          
+            {
+              authors: 'Sudheesh K Rajput, Osamu Matoba, Manoj Kumar, <b>Xiangyu Quan</b>, Yasuhiro Awatsuji, Yosuke Tamada, Enrique Tajahuerce',
+              title: 'Multi-Physical Parameter Cross-Sectional Imaging of Quantitative Phase and Fluorescence by Integrated Multimodal Microscopy ',
+              venue: 'IEEE Journal of Selected Topics in Quantum Electronics 27(4) 1-9',
+              year: 2021,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1109/jstqe.2021.3064406' }
+              ]
+            },          
+            {
+              authors: '<b>Xiangyu Quan</b>, Manoj Kumar, Sudheesh K. Rajput, Yosuke Tamada, Yasuhiro Awatsuji, Osamu Matoba',
+              title: 'Multimodal Microscopy: Fast Acquisition of Quantitative Phase and Fluorescence Imaging in 3D Space ',
+              venue: 'IEEE Journal of Selected Topics in Quantum Electronics 27(4) 1-11',
+              year: 2021,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1109/jstqe.2020.3038403' }
+              ]
+            },
+            {
+              authors: 'Takuya Okada, Daisuke Kato, Yuki Nomura, Norihiko Obata, <b>Xiangyu Quan</b>, Akihito Morinaga, Hajime Yano, Zhongtian Guo, Yuki Aoyama, Yoshihisa Tachibana,  Andrew J. Moorhouse, Osamu Matoba, Tetsuya Takiguchi, Satoshi Mizobuchi, Hiroaki Wake ',
+              title: 'Pain induces stable, active microcircuits in the somatosensory cortex that provide a therapeutic target',
+              venue: 'Science Advances 7(12) eabd8261',
+              year: 2021,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1126/sciadv.abd8261' }
+              ]
+            }, 
+            {
+              authors: 'Sudheesh K. Rajput, Osamu Matoba, Yuki Takase, Tomoyoshi Inoue, Kohei Itaya, Manoj Kumar, <b>Xiangyu Quan</b>, Peng Xia, Yasuhiro Awatsuji',
+              title: 'Multimodal sound field imaging using digital holography',
+              venue: 'Applied Optics 60(10) B49-B58',
+              year: 2021,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1364/AO.415162' }
+              ]
+            }, 
+         
+            {
+              authors: 'Manoj Kumar, Osamu Matoba, <b>Xiangyu Quan</b>, Sudheesh K. Rajput, Yasuhiro Awatsuji, Yosuke Tamada',
+              title: 'Single-shot common-path off-axis digital holography: applications in bioimaging and optical metrology ',
+              venue: 'Applied Optics 60(4) A195-A204',
+              year: 2021,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1364/ao.404208' }
+              ]
+            },
+            {
+              authors: 'Sudheesh K. Rajput, Osamu Matoba, Manoj Kumar, <b>Xiangyu Quan</b>, Yasuhiro Awatsuji',
+              title: 'Sound wave detection by common-path digital holography',
+              venue: 'Optics and Lasers in Engineering 137 106331',
+              year: 2021,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1016/j.optlaseng.2020.106331' }
+              ]
+            } 
+        ], conferences: [
+
+        ] },
+        2020: { papers: [
+            {
+              authors: 'John T Sheridan, Raymond K Kostuk, Antonio Fimia Gil, Y Wang, W Lu, H Zhong, Y Tomita...<b>Xiangyu Quan</b>, et al.',
+              title: 'Roadmap on holography',
+              venue: 'Journal of Optics 22(12) 123002',
+              year: 2020,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1088/2040-8986/abb3a4' }
+              ]
+            }, 
+            {
+              authors: 'Manoj Kumar, <b>Xiangyu Quan</b>, Yasuhiro Awatsuji, Yosuke Tamada, Osamu Matoba',
+              title: 'Single-shot common-path off-axis dual-wavelength digital holographic microscopy',
+              venue: 'Applied Optics 59(24) 7144-7152',
+              year: 2020,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1364/AO.395001' }
+              ]
+            },          
+            {
+              authors: 'Manoj Kumar, <b>Xiangyu Quan</b>, Yasuhiro Awatsuji, Yosuke Tamada, Osamu Matoba',
+              title: 'Digital Holographic Multimodal Cross-Sectional Fluorescence and Quantitative Phase Imaging System ',
+              venue: 'Scientific Reports 10 7580',
+              year: 2020,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1038/s41598-020-64028-x' }
+              ]
+            },
+            {
+              authors: 'Manoj Kumar, <b>Xiangyu Quan</b>, Yasuhiro Awatsuji, Chaoyang Cheng, Mitsuyasu Hasebe, Yosuke Tamada, Osamu Matoba',
+              title: 'Common-path multimodal three-dimensional fluorescence and phase imaging system ',
+              venue: 'Journal of Biomedical Optics 25(3) 032010',
+              year: 2020,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1117/1.jbo.25.3.032010' }
+              ]
+            } 
+
+        ], conferences: [
+
+        ] },
+        2019: { papers: [
+            {
+              authors: 'Sudheesh K. Rajput, Manoj Kumar, <b>Xiangyu Quan</b>, Mitsuhiro Morita, Tomoyuki Furuyashiki, Yasuhiro Awatsuji, Enrique Tajahuerce, Osamu Matoba',
+              title: 'Three-dimensional fluorescence imaging using the transport of intensity equation',
+              venue: 'Journal of Biomedical Optics 25(3) 032004',
+              year: 2019,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1117/1.jbo.25.3.032004' }
+              ]
+            },
+            {
+              authors: '仁田 功一, 辻林 大揮, <b>全 香玉</b>, 的場 修',
+              title: '光学処理による勾配降下法の実装 ',
+              venue: 'レーザー研究 47巻 164-168',
+              year: 2019,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: '#' }
+              ]
+            } 
+
+        ], conferences: [
+
+        ] },
+        2018: { papers: [
+            {
+              authors: 'Tatsuki Tahara, <b>Xiangyu Quan</b>, Reo Otani, Yasuhiro Takaki, Osamu Matoba',
+              title: 'Digital holography and its multidimensional imaging applications: a review',
+              venue: 'Microscopy 67(2) 55-67',
+              year: 2018,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1093/jmicro/dfy007' }
+              ]
+            },
+            {
+              authors: '<b>Xiangyu Quan</b>, Manoj Kumar, Osamu Matoba, Yasuhiro Awatsuji, Yoshio Hayasaki, Satoshi Hasegawa, Hiroaki Wake',
+              title: 'Three-dimensional stimulation and imaging-based functional optical microscopy of biological cells',
+              venue: 'Optics Letters 43(21) 5447-5450',
+              year: 2018,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1364/ol.43.005447' }
+              ]
+            } 
+
+        ], conferences: [
+
+        ] },
+        2017: { papers: [
+            {
+              authors: '<b>Xiangyu Quan</b>, Osamu Matoba, Yasuhiro Awatsuji',
+              title: 'Image recovery from defocused 2D fluorescent images in multimodal digital holographic microscopy',
+              venue: 'Optics Letters 42(9) 1797-1799',
+              year: 2017,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1364/OL.42.001796' }
+              ]
+            },
+            {
+              authors: '<b>Xiangyu Quan</b>, Osamu Matoba, Yasuhiro Awatsuji',
+              title: 'Single-shot incoherent digital holography using a dual-focusing lens with diffraction gratings',
+              venue: 'Optics Letters 42(3) 383-386',
+              year: 2017,
+              links: [
+                { text: 'PDF', href: '#' },
+                { text: 'DOI', href: 'https://doi.org/10.1364/ol.42.000383' }
+              ]
+            }          
+        ], conferences: [
+
+        ] }
+      };
+      
+
+      // ----- Render functions -----
+      function renderPublications(root, data){
+        root.innerHTML = '';
+        const years = Object.keys(data).sort((a,b)=> Number(b) - Number(a));
+        years.forEach(y => {
+          const group = document.createElement('details');
+          group.className = 'year-group';
+          group.id = 'y' + y;
+
+          const summary = document.createElement('summary');
+          summary.className = 'year-summary';
+          summary.innerHTML = `
+            <span class="year-left">
+              <span class="year-caret" aria-hidden="true">▶</span>
+              <span class="year-label">${y}</span>
+            </span>
+            <span class="counts">
+              ${ (data[y].papers?.length||0) ? `<span class="badge" title="Number of journal papers">Papers ${data[y].papers.length}</span>` : '' }
+              ${ (data[y].conferences?.length||0) ? `<span class="badge" title="Number of conference items">Confs ${data[y].conferences.length}</span>` : '' }
+            </span>`;
+
+          group.appendChild(summary);
+
+          const body = document.createElement('div');
+          body.className = 'year-body';
+
+          if (data[y].papers && data[y].papers.length){
+            body.appendChild(section('Papers', data[y].papers));
+          }
+          if (data[y].conferences && data[y].conferences.length){
+            body.appendChild(section('Conferences', data[y].conferences));
+          }
+          if (!(data[y].papers?.length) && !(data[y].conferences?.length)){
+            const p = document.createElement('p');
+            p.className = 'muted';
+            p.textContent = 'No items yet.';
+            body.appendChild(p);
+          }
+
+          group.appendChild(body);
+          root.appendChild(group);
+        });
+      }
+
+      function section(label, items){
+        const sec = document.createElement('section');
+        sec.className = 'cat';
+        const h3 = document.createElement('h3');
+        h3.textContent = label;
+        sec.appendChild(h3);
+
+        const ol = document.createElement('ol');
+        ol.className = 'pubs';
+
+        items.forEach(item => {
+          const li = document.createElement('li');
+          // authors may already contain <b> tags for the PI
+          const authors = item.authors ? `${item.authors}` : '';
+          const title = item.title ? `, <i>${item.title}</i>` : '';
+          const venue = item.venue ? `, ${item.venue}` : '';
+          const year = item.year ? `, ${item.year}.` : '';
+          // 교체
+          const linkItems = (item.links || [])
+          .filter(l => (l.text || '').toLowerCase() !== 'pdf');
+          const links = linkItems
+          .map(l => `<a href="${l.href}" target="_blank" rel="noopener">${l.text}</a>`)
+          .join(' · ');
+          // 공백/마침표 정리: 링크가 없으면 공백 없이 출
+          const base = `${authors}${title}${venue}${year}`.trim();
+          li.innerHTML = linkItems.length ? `${base} ${links}` : base;
+          li.innerHTML = `${authors}${title}${venue}${year} ${links}`.trim();
+          ol.appendChild(li);
+        });
+
+        sec.appendChild(ol);
+        return sec;
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const root = document.getElementById('pubs-root');
+        renderPublications(root, PUBS_BY_YEAR);
+
+        // 현재 연도 자동 오픈
+        const nowYear = new Date().getFullYear().toString();
+        const cur = document.getElementById('y' + nowYear);
+        if (cur) cur.open = true;
+
+        // 해시 이동 시 해당 연도 열기 (예: publications.html#y2024)
+        if (location.hash){
+          const target = document.getElementById(location.hash.slice(1));
+          if (target && target.tagName === 'DETAILS'){ target.open = true; target.scrollIntoView({behavior: 'smooth'}); }
+        }
+      });
+    </script>
   </body>
 </html>
