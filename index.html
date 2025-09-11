@@ -19,6 +19,13 @@
     }
     .footer .footer-links .icon-link:hover{ opacity:1; transform:translateY(-1px); }
     .footer .footer-links svg{ width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:1.8; }
+    /* --- Partner logo links in footer --- */
+    .footer { padding: 24px 0; }
+    .footer .footer-links { flex-wrap: wrap; gap: 16px; margin-bottom: 10px; }
+    .footer .footer-links .icon-link { width:auto; height:auto; padding:4px; border-radius:8px; }
+    .footer .footer-links .icon-link img { display:block; height:42px; width:auto; object-fit:contain; }
+    @media (min-width:768px){ .footer .footer-links .icon-link img { height:48px; } }
+
     </style>
   </head>
   <body>
@@ -57,7 +64,21 @@
       </section>
     </main>
     <footer class="footer">
-  <div>&copy; <span id="year"></span> ZenLab. All rights reserved.</div>
-</footer>
+      <div class="footer-links">
+        <a class="icon-link" href="http://www.oasis.kobe-u.ac.jp/en/index.html" target="_blank" rel="noopener">
+          <img src="assets/partners/oasis.png" alt="Kobe Univ OaSIS">
+        </a>
+        <a class="icon-link" href="https://uu-core.com/english/index_e.html" target="_blank" rel="noopener">
+          <img src="assets/partners/uu-core.png" alt="Utsunomiya University CORE">
+        </a>
+        <a class="icon-link" href="http://www.is.utsunomiya-u.ac.jp/" target="_blank" rel="noopener">
+          <img src="assets/partners/uu-engineering.png" alt="Information Electronics Optics Course">
+        </a>
+        <a class="icon-link" href="https://www.eng.utsunomiya-u.ac.jp/" target="_blank" rel="noopener">
+          <img src="assets/partners/utsunomiya-univ.png" alt="Utsunomiya University Engineering">
+        </a>
+      </div>
+      <div>&copy; <span id="year"></span> ZenLab. All rights reserved.</div>
+    </footer>
   </body>
 </html>
