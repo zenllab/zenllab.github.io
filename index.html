@@ -2,11 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Home · ZenLab</title>
-<link rel="icon" href="assets/favicon.svg">
-<link rel="stylesheet" href="assets/style.css">
-<script defer src="assets/script.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home · ZenLab</title>
+    <link rel="icon" href="assets/favicon.svg">
+    <link rel="stylesheet" href="assets/style.css">
+    <script defer src="assets/script.js"></script>
+    <style>
+    .footer .footer-links{
+      display:flex; gap:16px; justify-content:center; align-items:center;
+      margin-bottom:8px;
+    }
+    .footer .footer-links .icon-link{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:32px; height:32px; opacity:.85; text-decoration:none;
+      transition:opacity .2s, transform .1s;
+    }
+    .footer .footer-links .icon-link:hover{ opacity:1; transform:translateY(-1px); }
+    .footer .footer-links svg{ width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:1.8; }
+    </style>
   </head>
   <body>
     <nav class="nav">
