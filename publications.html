@@ -64,6 +64,14 @@
     </footer>
 
     <script>
+      // 연도별 위트 문구 (필요시 자유롭게 수정)
+      const EMPTY_YEAR_QUIPS = {
+        2025: "Ideas are brewing… ☕",
+        2024: "Industry sabbatical—back soon ✨"
+      };
+      // 다른 비어있는 연도에 공통 적용
+      const DEFAULT_EMPTY_YEAR_QUIP = "아이디어 숙성 중… 곧 좋은 소식이 올라옵니다 🍀";
+      
       // ----- Data model: 연도별로 papers / conferences 구분 -----
       // 실제 데이터로 교체하세요. (예시는 자리표시자입니다)
       const PUBS_BY_YEAR = {
@@ -353,13 +361,14 @@
           if (data[y].conferences && data[y].conferences.length){
             body.appendChild(section('Conferences', data[y].conferences));
           }
+          
           if (!(data[y].papers?.length) && !(data[y].conferences?.length)){
             const p = document.createElement('p');
             p.className = 'muted';
-            p.textContent = 'No items yet.';
+            const quip = EMPTY_YEAR_QUIPS[y] || DEFAULT_EMPTY_YEAR_QUIP;
+            p.innerHTML = `<em>${quip}</em>`;
             body.appendChild(p);
           }
-
           group.appendChild(body);
           root.appendChild(group);
         });
