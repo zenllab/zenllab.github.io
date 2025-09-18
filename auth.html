@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>Dropbox Auth Callback</title>
+  <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
+  <style>body{font:14px/1.4 system-ui,Segoe UI,Helvetica,Arial;padding:2rem}</style>
+</head>
+<body>
+  <p>Dropbox 인증 처리 중…</p>
+  <script>
+    (async () => {
+      try {
+        const APP_KEY = 'YOUR_APP_KEY';
+        const REDIRECT_URI = location.origin + '/auth.html';
+
+        const dbxAuth = new Dropbox.DropboxAuth({ clientId: APP_KEY });
+        // PKCE 코드 교환 (현재 URL의 code 파라미터 사용)
+        await dbxAuth.getAccessTokenFromCode(REDIRECT_URI, window.location.href);
+
+        // 세션 저장 (private.html에서 복원)
+        sessionStorage.setItem('dbx_auth', JSON.stringify({
+          accessToken: dbxAuth.getAccessToken(),
+          refreshToken: dbxAuth.getRefreshToken(), // 'offline' 요청 시 제공
+          expiresAt:   dbxAuth.getAccessTokenExpiresAt()
+        }));
+
+        // 홈으로
+        window.location.href = '/';
+      } catch (e) {
+        console.error(e);
+        document.body.innerHTML = '<p>인증 실패: 콘솔을 확인하세요.</p>';
+      }
+    })();
+  </script>
+</body>
+</html>

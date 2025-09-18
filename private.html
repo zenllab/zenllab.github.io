@@ -8,82 +8,25 @@
   <link rel="stylesheet" href="assets/style.css">
   <script defer src="assets/script.js"></script>
   <script defer src="assets/toDo.js"></script>
+  <!-- Dropbox JS SDK (브라우저 번들) -->
+  <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
 
   <style>
-    /* 리스트의 기본 점 기호 제거 */
-    .js-toDoList {
-      list-style-type: none;
-      padding-left: 0;
-    }
-
-    /* X 버튼을 작게 만들기 */
-    .js-toDoList button {
-      font-size: 12px;
-      padding: 2px 5px;
-      background-color: transparent;
-      border: none;
-      cursor: pointer;
-    }
-
-    /* Rich Text Editor 스타일 */
-    .rich-text-editor {
-      width: 100%;
-      min-height: 200px;
-      border: 1px solid #ccc;
-      padding: 10px;
-      background-color: #f9f9f9;
-      margin-top: 20px;
-    }
-
-    /* Calendar styles */
-    .calendar-container {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        border-radius: 8px;
-        max-width: 400px;
-        margin: 20px 0;
-        background-color: #f0f0f0;
-    }
-
-    .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .calendar-header button {
-        background: none;
-        border: none;
-        font-size: 1.5em;
-        cursor: pointer;
-    }
-
-    .calendar-days {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        text-align: center;
-        font-weight: bold;
-    }
-
-    .calendar-dates {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        text-align: center;
-    }
-
-    .calendar-dates div {
-        padding: 10px;
-        cursor: pointer;
-    }
-    
-    .calendar-dates .selected-date {
-        background-color: #007bff;
-        color: white;
-        border-radius: 50%;
-    }
+       /* (기존 스타일 그대로 유지) */
+    .js-toDoList { list-style-type: none; padding-left: 0; }
+    .js-toDoList button { font-size: 12px; padding: 2px 5px; background: transparent; border:none; cursor:pointer; }
+    .rich-text-editor { width:100%; min-height:200px; border:1px solid #ccc; padding:10px; background:#f9f9f9; margin-top:20px; }
+    .calendar-container { font-family:Arial,sans-serif; padding:20px; border-radius:8px; max-width:400px; margin:20px 0; background:#f0f0f0; }
+    .calendar-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .calendar-header button { background:none; border:none; font-size:1.5em; cursor:pointer; }
+    .calendar-days { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-weight:bold; }
+    .calendar-dates { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; }
+    .calendar-dates div { padding:10px; cursor:pointer; }
+    .calendar-dates .selected-date { background:#007bff; color:#fff; border-radius:50%; }
   </style>
 </head>
+
+
 <body>
     <nav class="nav">
         <a class="logo" href="index.html">Zen Lab</a>
@@ -103,6 +46,7 @@
 
     <main class="private-wrap">
     <section id="app">
+        <!-- Todo -->
         <div class ="Todo">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                <h3 id="todo-list">Todo list - YYYY.MM.DD</h3> 
@@ -116,7 +60,7 @@
         </ul>
         </div>
 
-
+        <!-- Report -->
         <div class="report-editor">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h3 id="report-title">Daily Report - YYYY.MM.DD</h3>
@@ -127,6 +71,7 @@
             </div>
         </div>
         
+        <!-- Calendar -->
         <div class="calendar-container">
             <div class="calendar-header">
                 <button id="prev-month">‹</button>
@@ -150,8 +95,13 @@
     <footer class="footer">
         <div>&copy; <span id="year"></span> Zen Lab. All rights reserved.</div>
     </footer>
-
     <script>
+
+      // ======= 환경 설정 (필수) =======
+      const APP_KEY = 'nubtwdkq9uvn2ka';                      // Dropbox App key
+      const REDIRECT_URI = location.origin + 'https://zenllab.github.io/auth.html'; // Dropbox App 설정에도 동일 등록
+      const SCOPES = ['files.content.write'];              // 업로드 권한
+
       const calendarDatesEl = document.getElementById('calendar-dates');
       const monthYearEl = document.getElementById('month-year');
       const prevBtn = document.getElementById('prev-month');
@@ -161,14 +111,62 @@
       const todolistEl = document.getElementById('todo-list');
       const reportTitleEl = document.getElementById('report-title');
       const reportContentEl = document.getElementById('report-content');
-      const saveBtntd = document.getElementById('saveBtntd');
-      const saveBtn = document.getElementById('saveBtn');
+      const saveBtntdEl = document.getElementById('saveBtntd');
+      const saveBtnEl = document.getElementById('saveBtn');
 
       const today = new Date();
       let currentDate = new Date();
       let selectedDate = new Date();
 
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+      // ======= Dropbox Auth =======
+      const dbxAuth = new Dropbox.DropboxAuth({ clientId: APP_KEY });
+
+      // 세션 저장/복원
+      (function restoreAuth(){
+        const saved = sessionStorage.getItem('dbx_auth');
+        if (!saved) return;
+        try {
+          const { accessToken, refreshToken, expiresAt } = JSON.parse(saved);
+          if (accessToken)  dbxAuth.setAccessToken(accessToken);
+          if (refreshToken) dbxAuth.setRefreshToken(refreshToken);
+          if (expiresAt)    dbxAuth.setAccessTokenExpiresAt(new Date(expiresAt));
+        } catch {}
+      })();
+
+      function persistAuth() {
+        sessionStorage.setItem('dbx_auth', JSON.stringify({
+          accessToken: dbxAuth.getAccessToken(),
+          refreshToken: dbxAuth.getRefreshToken(),
+          expiresAt: dbxAuth.getAccessTokenExpiresAt()
+        }));
+      }
+
+      async function ensureAuth() {
+        // 유효 토큰 보유 시 통과
+        if (dbxAuth.getAccessToken() && new Date() < dbxAuth.getAccessTokenExpiresAt()) return;
+
+        // 리프레시 토큰 보유 시 갱신
+        if (dbxAuth.getRefreshToken()) {
+          // SDK 전역 util이 있다면: await Dropbox.checkAndRefreshAccessToken(dbxAuth)
+          await dbxAuth.refreshAccessToken(); // 단독 갱신
+          persistAuth();
+          return;
+        }
+
+        // 최초 인증: PKCE 코드 플로우(리다이렉트)
+        const authUrl = await dbxAuth.getAuthenticationUrl(
+          REDIRECT_URI,       // redirect
+          undefined,          // state
+          'code',             // response_type
+          'offline',          // token_access_type: refresh token 발급
+          SCOPES,             // scopes
+          'none',             // include_granted_scopes
+          true                // usePKCE
+        );
+        window.location.href = authUrl;
+      }
 
       // 날짜를 YYYY-MM-DD 형식의 문자열로 변환하는 함수
       function formatDate(date) {
@@ -221,18 +219,18 @@
 
           if (isToday) {
               reportContentEl.contentEditable = "true";
-              saveBtn.style.display = 'inline-block';
+              saveBtnEl.style.display = 'inline-block';
           } else {
               reportContentEl.contentEditable = "false";
-              saveBtn.style.display = 'none';
+              saveBtnEl.style.display = 'none';
           }
 
          if (isToday) {
               reportContentEl.contentEditable = "true";
-              saveBtntd.style.display = 'inline-block';
+              saveBtntdEl.style.display = 'inline-block';
           } else {
               reportContentEl.contentEditable = "false";
-              saveBtntd.style.display = 'none';
+              saveBtntdEl.style.display = 'none';
           }
 
           if (savedContent) {
@@ -242,11 +240,55 @@
           }
       }
 
-      function saveReport() {
-          const dateKey = formatDate(selectedDate);
-          localStorage.setItem(dateKey, reportContentEl.innerHTML);
-          alert('Report saved!');
+      // ======= 업로드: Report(HTML) =======
+      async function uploadReport() {
+        await ensureAuth();
+        const dbx = new Dropbox.Dropbox({ auth: dbxAuth });
+
+        const dateKey = formatDate(selectedDate);
+        const path = `/private/${dateKey}/report-${dateKey}.html`;
+
+        // 최소 HTML 문서로 감싸 저장
+        const html = `<!doctype html><html><head><meta charset="utf-8"><title>Report ${dateKey}</title></head><body>${reportContentEl.innerHTML}</body></html>`;
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+
+        const res = await dbx.filesUpload({ path, contents: blob, mode: { '.tag': 'overwrite' } });
+        persistAuth();
+        alert(`Report 업로드 완료: ${res.result.path_display}`);
       }
+
+      // ======= 업로드: Todo(JSON) =======
+      function collectTodos() {
+        const items = Array.from(document.querySelectorAll('.js-toDoList li'));
+        // 각 li에서 버튼 텍스트(X 등) 제외하고 라인만 추출
+        return items.map(li => li.cloneNode(true).textContent.trim()).filter(Boolean);
+      }
+
+      async function uploadTodo() {
+        await ensureAuth();
+        const dbx = new Dropbox.Dropbox({ auth: dbxAuth });
+
+        const dateKey = formatDate(selectedDate);
+        const path = `/private/${dateKey}/todo-${dateKey}.json`;
+
+        const payload = {
+          date: dateKey,
+          items: collectTodos(),
+          savedAt: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+
+        const res = await dbx.filesUpload({ path, contents: blob, mode: { '.tag': 'overwrite' } });
+        persistAuth();
+        alert(`Todo 업로드 완료: ${res.result.path_display}`);
+      }
+
+      // ======= 이벤트 바인딩 =======
+      prevBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); });
+      nextBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(); });
+      // 'Today' 버튼 이벤트 리스너를 정의된 함수로 연결
+      todayBtn.addEventListener('click', handleTodayClick);
+
 
       // 'Today' 버튼의 클릭 핸들러를 별도의 함수로 정의
       function handleTodayClick() {
@@ -266,16 +308,24 @@
           renderCalendar();
       });
 
-      // 'Today' 버튼 이벤트 리스너를 정의된 함수로 연결
-      todayBtn.addEventListener('click', handleTodayClick);
-      
-      saveBtn.addEventListener('click', saveReport);
-      saveBtntd.addEventListener('click', saveReport);
+     
+      function saveReportLocal() {
+          const dateKey = formatDate(selectedDate);
+          localStorage.setItem(dateKey, reportContentEl.innerHTML);
+          alert('Report saved!');
+      }
+      // saveBtn.addEventListener('click', saveReportLocal);
+      // saveBtntd.addEventListener('click', saveReportLocal);
+ 
+
+      saveBtnEl.addEventListener('click', (e) => { e.preventDefault(); uploadReport().catch(err => { console.error(err); alert('Report 업로드 실패'); }); });
+      saveBtntdEl.addEventListener('click', (e) => { e.preventDefault(); uploadTodo().catch(err => { console.error(err); alert('Todo 업로드 실패'); }); });
+
 
       // 페이지가 로드될 때 자동으로 Today 클릭
-      document.addEventListener('DOMContentLoaded', function() {
-      handleTodayClick();
-      });
+      // 초기 렌더
+      document.addEventListener('DOMContentLoaded', handleTodayClick);
+      document.getElementById('year').textContent = new Date().getFullYear();
     </script>
 </body>
 </html>
