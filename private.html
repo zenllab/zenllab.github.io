@@ -149,34 +149,18 @@
 
         // 리프레시 토큰 보유 시 갱신
         if (dbxAuth.getRefreshToken()) {
-          await dbxAuth.refreshAccessToken();
+          // SDK 전역 util이 있다면: await Dropbox.checkAndRefreshAccessToken(dbxAuth)
+          await dbxAuth.refreshAccessToken(); // 단독 갱신
           persistAuth();
           return;
         }
 
-        // --- ⬇️ 이 부분이 핵심입니다 ⬇️ ---
-
-        // 1. 전역 Dropbox 객체에서 PKCE 코드 쌍을 생성합니다.
-        const pkceCodePair = Dropbox.generatePkceCodePair(); 
-        
-        // 2. 생성된 codeVerifier를 다음 페이지로 넘기기 위해 세션에 저장합니다.
+        const pkceCodePair = dbxAuth.generatePkceCodePair();
         sessionStorage.setItem('code_verifier', pkceCodePair.codeVerifier);
-
-        // 3. getAuthenticationUrl을 호출할 때 마지막 인자로 codeChallenge를 전달합니다.
         const authUrl = await dbxAuth.getAuthenticationUrl(
-          REDIRECT_URI,           // redirect
-          undefined,              // state
-          'code',                 // response_type
-          'offline',              // token_access_type
-          SCOPES,                 // scopes
-          'none',                 // include_granted_scopes
-          true,                   // usePKCE
-          undefined,              // scope_demiminator
-          undefined,              // require_role
-          pkceCodePair.codeChallenge // 마지막 인자로 codeChallenge 추가
+          REDIRECT_URI, undefined, 'code', 'offline', SCOPES,
+          'none', true, undefined, undefined, pkceCodePair.codeChallenge
         );
-
-        // 4. 생성된 인증 URL로 이동합니다.
         window.location.href = authUrl;
       }
 
