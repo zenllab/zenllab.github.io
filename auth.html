@@ -16,7 +16,13 @@
 
         const dbxAuth = new Dropbox.DropboxAuth({ clientId: APP_KEY });
         // PKCE 코드 교환 (현재 URL의 code 파라미터 사용)
-        await dbxAuth.getAccessTokenFromCode(REDIRECT_URI, window.location.href);
+        const codeVerifier = sessionStorage.getItem('code_verifier');
+        if (!codeVerifier) {
+          throw new Error("PKCE code verifier not found in session storage.");
+        }
+        sessionStorage.removeItem('code_verifier');
+
+        await dbxAuth.getAccessTokenFromCode(REDIRECT_URI, window.location.href, codeVerifier);
 
         // 세션 저장 (private.html에서 복원)
         sessionStorage.setItem('dbx_auth', JSON.stringify({

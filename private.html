@@ -155,6 +155,9 @@
           return;
         }
 
+        const pkceCodePair = dbxAuth.generatePkceCodePair();
+        sessionStorage.setItem('code_verifier', pkceCodePair.codeVerifier);
+
         // 최초 인증: PKCE 코드 플로우(리다이렉트)
         const authUrl = await dbxAuth.getAuthenticationUrl(
           REDIRECT_URI,       // redirect
@@ -163,7 +166,10 @@
           'offline',          // token_access_type: refresh token 발급
           SCOPES,             // scopes
           'none',             // include_granted_scopes
-          true                // usePKCE
+          true,                // usePKCE
+          undefined,
+          undefined,
+          pkceCodePair.codeChallenge // 코드 챌린지 추가
         );
         window.location.href = authUrl;
       }
