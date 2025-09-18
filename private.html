@@ -106,7 +106,7 @@
         <div class ="Todo">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                <h3 id="todo-list">Todo list - YYYY.MM.DD</h3> 
-               <button class="btn-td" id="saveBtn-td">Save Plan</button>
+               <button class="btn" id="saveBtntd">Save Todo list</button>
             </div>
             <form class="js-toDoForm">
             <input type="text" placeholder="Write a to do" />
@@ -161,7 +161,7 @@
       const todolistEl = document.getElementById('todo-list');
       const reportTitleEl = document.getElementById('report-title');
       const reportContentEl = document.getElementById('report-content');
-      const saveBtn-td = document.getElementById('saveBtn-td');
+      const saveBtntd = document.getElementById('saveBtntd');
       const saveBtn = document.getElementById('saveBtn');
 
       const today = new Date();
@@ -229,10 +229,10 @@
 
          if (isToday) {
               reportContentEl.contentEditable = "true";
-              saveBtn-td.style.display = 'inline-block';
+              saveBtntd.style.display = 'inline-block';
           } else {
               reportContentEl.contentEditable = "false";
-              saveBtn-td.style.display = 'none';
+              saveBtntd.style.display = 'none';
           }
 
           if (savedContent) {
@@ -270,7 +270,7 @@
       todayBtn.addEventListener('click', handleTodayClick);
       
       saveBtn.addEventListener('click', saveReport);
-      saveBtn-td.addEventListener('click', saveReport);
+      saveBtntd.addEventListener('click', saveReport);
 
       // 페이지가 로드될 때 자동으로 Today 클릭
       document.addEventListener('DOMContentLoaded', function() {
