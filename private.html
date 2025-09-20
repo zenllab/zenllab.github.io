@@ -341,15 +341,15 @@
           renderCalendar();
       }
 
-     
+      /* 
       function saveReportLocal() {
           const dateKey = formatDate(selectedDate);
           localStorage.setItem(dateKey, reportContentEl.innerHTML);
           alert('Report saved!');
       }
-      // saveBtn.addEventListener('click', saveReportLocal);
-      // saveBtntd.addEventListener('click', saveReportLocal);
- 
+      saveBtn.addEventListener('click', saveReportLocal);
+      saveBtntd.addEventListener('click', saveReportLocal);
+      */
 
       saveBtnEl.addEventListener('click', (e) => { e.preventDefault(); uploadReport().catch(err => { console.error(err); alert('Report 업로드 실패'); }); });
       saveBtntdEl.addEventListener('click', (e) => { e.preventDefault(); uploadTodo().catch(err => { console.error(err); alert('Todo 업로드 실패'); }); });
