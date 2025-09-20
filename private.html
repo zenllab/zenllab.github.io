@@ -420,10 +420,11 @@
               const fileName = `report-${dateKey}.html`;
               
               const response = await dbx.filesDownload({ path: `/${fileName}` });
-              const text = await response.result.fileBinary.text();
+              const text = await getDropboxText(response);
               
               // HTML에서 body 내용만 추출
               const bodyMatch = text.match(/<body>(.*?)<\/body>/s);
+
               if (bodyMatch) {
                   reportContentEl.innerHTML = bodyMatch[1];
                   alert('Report 불러오기 완료!');
