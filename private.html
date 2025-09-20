@@ -495,6 +495,11 @@
               const fileName = `todo-${dateKey}.json`;
               
               const response = await dbx.filesDownload({ path: `/${fileName}` });
+              // 파일을 읽기 전에 fileBinary가 존재하는지 먼저 확인합니다.
+              if (!response.result.fileBinary) {
+                throw new Error('파일 내용이 없거나 손상되었습니다.');
+            }
+
               const text = await response.result.fileBinary.text();
               const data = JSON.parse(text);
               
