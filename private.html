@@ -7,10 +7,10 @@
   <link rel="icon" href="assets/Logo.svg">
   <link rel="stylesheet" href="assets/style.css">
   <script defer src="assets/script.js"></script>
-  <!-- <script defer src="assets/toDo.js"></script> --> <!-- 중복 방지를 위해 비활성화 -->
-
-  <!-- Dropbox JS SDK -->
   <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
+  <script defer src="assets/dropbox-auth.js"></script>
+  <script defer src="assets/todo-manager.js"></script>
+  <script defer src="assets/calendar-manager.js"></script>
 
   <style>
     .js-toDoList { list-style-type: none; padding-left: 0; }
@@ -24,7 +24,6 @@
     .calendar-dates div { padding:10px; cursor:pointer; }
     .calendar-dates .selected-date { background:#007bff; color:#fff; border-radius:50%; }
     
-    /* 인증 상태 표시 */
     .auth-status { padding: 10px; margin: 10px 0; border-radius: 5px; font-weight: bold; }
     .auth-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .auth-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
@@ -57,7 +56,6 @@
     <main class="private-wrap">
     <section id="app">
         
-        <!-- 인증 상태 표시 -->
         <div id="auth-status" class="auth-status auth-pending">
             Dropbox 연결 확인 중...
         </div>
@@ -67,8 +65,7 @@
             <button id="disconnect-btn" class="btn btn-secondary" style="display:none;">연결 해제</button>
         </div>
 
-        <!-- Todo -->
-        <div class ="Todo">
+        <div class="Todo">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                <h3 id="todo-list">Todo List - YYYY.MM.DD</h3> 
                <div>
@@ -80,11 +77,9 @@
                 <input type="text" placeholder="Write a to do" />
                 <button type="button" class="js-addBtn">Add</button>
             </form>
-            <ul class="js-toDoList">
-            </ul>
+            <ul class="js-toDoList"></ul>
         </div>
 
-        <!-- Report -->
         <div class="report-editor">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h3 id="report-title">Daily Report - YYYY.MM.DD</h3>
@@ -98,7 +93,6 @@
             </div>
         </div>
         
-        <!-- Calendar -->
         <div class="calendar-container">
             <div class="calendar-header">
                 <button id="prev-month">‹</button>
@@ -107,13 +101,8 @@
                 <button id="today-btn">Today</button>
             </div>
             <div class="calendar-days">
-                <div>Sun</div>
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div>
+                <div>Thu</div><div>Fri</div><div>Sat</div>
             </div>
             <div class="calendar-dates" id="calendar-dates"></div>
         </div>
@@ -125,590 +114,13 @@
     </footer>
 
     <script>
-      // ======= PKCE 헬퍼 함수들 =======
-      function base64URLEncode(str) {
-          return btoa(String.fromCharCode.apply(null, str))
-              .replace(/\+/g, '-')
-              .replace(/\//g, '_')
-              .replace(/=/g, '');
-      }
-
-      function generateRandomString(length) {
-          const array = new Uint8Array(length);
-          crypto.getRandomValues(array);
-          return base64URLEncode(array);
-      }
-
-      async function sha256(plain) {
-          const encoder = new TextEncoder();
-          const data = encoder.encode(plain);
-          return window.crypto.subtle.digest('SHA-256', data);
-      }
-
-      async function generatePKCEPair() {
-          const codeVerifier = generateRandomString(32);
-          const hashed = await sha256(codeVerifier);
-          const codeChallenge = base64URLEncode(new Uint8Array(hashed));
-          return { codeVerifier, codeChallenge };
-      }
-      
-      // DOM 요소들
-      const calendarDatesEl = document.getElementById('calendar-dates');
-      const monthYearEl = document.getElementById('month-year');
-      const prevBtn = document.getElementById('prev-month');
-      const nextBtn = document.getElementById('next-month');
-      const todayBtn = document.getElementById('today-btn');
-      
-      const todolistEl = document.getElementById('todo-list');
-      const reportTitleEl = document.getElementById('report-title');
-      const reportContentEl = document.getElementById('report-content');
-
-      const saveBtntdEl = document.getElementById('saveBtntd');
-      const saveBtnEl = document.getElementById('saveBtn');
-      const loadBtntdEl = document.getElementById('loadBtntd');
-      const loadBtnEl = document.getElementById('loadBtn');
-      
-      const authStatusEl = document.getElementById('auth-status');
-      const connectBtnEl = document.getElementById('connect-btn');
-      const disconnectBtnEl = document.getElementById('disconnect-btn');
-
-      const APP_KEY = 'nubtwdkq9uvn2ka';
-      const REDIRECT_URI = window.location.origin + '/private.html'; // auth.html 대신 직접 처리
-
-      // 날짜 관련
-      const today = new Date();
-      let currentDate = new Date();
-      let selectedDate = new Date();
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      
-      // Dropbox 인스턴스
-      let dbx = null;
-      
-      // ======= 인증 관리 =======
-      function updateAuthStatus(status, message) {
-          authStatusEl.className = `auth-status auth-${status}`;
-          authStatusEl.textContent = message;
-          
-          const isConnected = status === 'success';
-          connectBtnEl.style.display = isConnected ? 'none' : 'inline-block';
-          disconnectBtnEl.style.display = isConnected ? 'inline-block' : 'none';
-          
-          // 저장/불러오기 버튼 표시
-          const buttonsToToggle = [saveBtnEl, saveBtntdEl, loadBtnEl, loadBtntdEl];
-          buttonsToToggle.forEach(btn => {
-              if (btn) btn.style.display = isConnected ? 'inline-block' : 'none';
-          });
-      }
-      
-      function saveTokens(accessToken, refreshToken = null, codeVerifier = null) {
-          const tokenData = {
-              accessToken,
-              refreshToken,
-              codeVerifier,
-              timestamp: Date.now()
-          };
-          localStorage.setItem('dropbox_tokens', JSON.stringify(tokenData));
-      }
-      
-      function loadTokens() {
-          try {
-              const saved = localStorage.getItem('dropbox_tokens');
-              if (!saved) return null;
-              
-              const tokenData = JSON.parse(saved);
-              // 토큰이 24시간 이상 오래되었으면 무효화
-              if (Date.now() - tokenData.timestamp > 24 * 60 * 60 * 1000) {
-                  localStorage.removeItem('dropbox_tokens');
-                  return null;
-              }
-              return tokenData;
-          } catch (e) {
-              console.error('토큰 로드 실패:', e);
-              return null;
-          }
-      }
-      
-      function clearTokens() {
-          localStorage.removeItem('dropbox_tokens');
-      }
-      
-      async function initializeDropbox() {
-          try {
-              // URL에서 인증 코드 확인 (이제 직접 처리)
-              const urlParams = new URLSearchParams(window.location.search);
-              const code = urlParams.get('code');
-              
-              if (code) {
-                  // 인증 코드가 있으면 토큰 교환 시도
-                  await handleAuthCode(code);
-                  // URL에서 코드 제거
-                  window.history.replaceState({}, document.title, window.location.pathname);
-                  return;
-              }
-              
-              // 저장된 토큰 확인
-              const tokens = loadTokens();
-              if (tokens && tokens.accessToken) {
-                  dbx = new Dropbox.Dropbox({ accessToken: tokens.accessToken });
-                  
-                  // 토큰 유효성 검사
-                  try {
-                      await dbx.usersGetCurrentAccount();
-                      updateAuthStatus('success', 'Dropbox 연결됨');
-                      return;
-                  } catch (e) {
-                      console.log('저장된 토큰이 유효하지 않음:', e);
-                      clearTokens();
-                  }
-              }
-              
-              // 연결되지 않은 상태
-              updateAuthStatus('error', 'Dropbox 연결 필요');
-              
-          } catch (e) {
-              console.error('Dropbox 초기화 실패:', e);
-              updateAuthStatus('error', 'Dropbox 연결 실패: ' + e.message);
-          }
-      }
-      
-      async function handleAuthCode(code) {
-          try {
-              updateAuthStatus('pending', '인증 처리 중...');
-              
-              // 저장된 code_verifier 가져오기
-              const tokens = loadTokens();
-              const codeVerifier = tokens?.codeVerifier;
-              
-              if (!codeVerifier) {
-                  throw new Error('PKCE code_verifier를 찾을 수 없습니다. 다시 인증해주세요.');
-              }
-              
-              // PKCE를 사용한 토큰 교환
-              const response = await fetch('https://api.dropboxapi.com/oauth2/token', {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/x-www-form-urlencoded',
-                  },
-                  body: new URLSearchParams({
-                      grant_type: 'authorization_code',
-                      code: code,
-                      client_id: APP_KEY,
-                      redirect_uri: REDIRECT_URI,
-                      code_verifier: codeVerifier // PKCE 필수
-                  })
-              });
-              
-              if (!response.ok) {
-                  const errorText = await response.text();
-                  throw new Error(`HTTP ${response.status}: ${errorText}`);
-              }
-              
-              const tokenData = await response.json();
-              
-              if (tokenData.access_token) {
-                  saveTokens(tokenData.access_token, tokenData.refresh_token);
-                  dbx = new Dropbox.Dropbox({ accessToken: tokenData.access_token });
-                  
-                  // 연결 테스트
-                  await dbx.usersGetCurrentAccount();
-                  updateAuthStatus('success', 'Dropbox 연결 성공!');
-              } else {
-                  throw new Error('액세스 토큰을 받지 못했습니다');
-              }
-              
-          } catch (e) {
-              console.error('인증 처리 실패:', e);
-              updateAuthStatus('error', '인증 실패: ' + e.message);
-              clearTokens();
-          }
-      }
-      
-      async function connectToDropbox() {
-          try {
-              // PKCE 코드 생성
-              const { codeVerifier, codeChallenge } = await generatePKCEPair();
-              
-              // code_verifier를 임시 저장 (인증 완료 후 사용)
-              saveTokens(null, null, codeVerifier);
-              
-              // 인증 URL 생성 (PKCE 사용)
-              const authUrl = `https://www.dropbox.com/oauth2/authorize?` + new URLSearchParams({
-                  client_id: APP_KEY,
-                  response_type: 'code',
-                  redirect_uri: REDIRECT_URI,
-                  code_challenge: codeChallenge,
-                  code_challenge_method: 'S256',
-                  token_access_type: 'offline' // refresh token을 위해
-              });
-              
-              window.location.href = authUrl;
-          } catch (e) {
-              console.error('인증 URL 생성 실패:', e);
-              updateAuthStatus('error', '인증 시작 실패: ' + e.message);
-          }
-      }
-      
-      function disconnectFromDropbox() {
-          clearTokens();
-          dbx = null;
-          updateAuthStatus('error', 'Dropbox 연결 해제됨');
-      }
-      
-      // ======= 파일 업로드/다운로드 =======
-      function formatDate(date) {
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-      }
-      
-      async function uploadReport() {
-          if (!dbx) {
-              alert('먼저 Dropbox에 연결해주세요');
-              return;
-          }
-          
-          try {
-              const dateKey = formatDate(selectedDate);
-              const fileName = `report-${dateKey}.html`;
-              const html = `<!doctype html><html><head><meta charset="utf-8"><title>Report ${dateKey}</title></head><body>${reportContentEl.innerHTML}</body></html>`;
-              
-              await dbx.filesUpload({
-                  path: `/${fileName}`,
-                  contents: html,
-                  mode: { '.tag': 'overwrite' }
-              });
-              
-              alert('Report 저장 완료!');
-          } catch (e) {
-              console.error('Report 업로드 실패:', e);
-              alert('Report 저장 실패: ' + e.message);
-          }
-      }
-      
-      async function loadReport() {
-          if (!dbx) {
-              alert('먼저 Dropbox에 연결해주세요');
-              return;
-          }
-          
-          try {
-              const dateKey = formatDate(selectedDate);
-              const fileName = `report-${dateKey}.html`;
-              
-              const response = await dbx.filesDownload({ path: `/${fileName}` });
-              const text = await response.result.fileBinary.text();
-              
-              // HTML에서 body 내용만 추출
-              const bodyMatch = text.match(/<body>(.*?)<\/body>/s);
-              if (bodyMatch) {
-                  reportContentEl.innerHTML = bodyMatch[1];
-                  alert('Report 불러오기 완료!');
-              } else {
-                  reportContentEl.innerHTML = text;
-                  alert('Report 불러오기 완료!');
-              }
-          } catch (e) {
-              if (e.status === 409) {
-                  alert('해당 날짜의 Report가 없습니다.');
-              } else {
-                  console.error('Report 다운로드 실패:', e);
-                  alert('Report 불러오기 실패: ' + e.message);
-              }
-          }
-      }
-      
-      function collectTodos() {
-          const items = Array.from(document.querySelectorAll('.js-toDoList li'));
-          return items.map(li => {
-              const text = li.querySelector('span').innerText;
-              const isChecked = li.querySelector('input[type="checkbox"]').checked;
-              return { text: text, isChecked: isChecked };
-          }).filter(item => item.text.trim());
-      }
-      
-      // 로컬 스토리지에 현재 Todo 목록 저장
-      function saveTodoToLocal() {
-          const dateKey = formatDate(selectedDate);
-          const todoItems = collectTodos();
-          localStorage.setItem(`todo_${dateKey}`, JSON.stringify(todoItems));
-      }
-      
-      // 로컬 스토리지에서 Todo 목록 불러오기
-      function loadTodoFromLocal() {
-          const dateKey = formatDate(selectedDate);
-          const saved = localStorage.getItem(`todo_${dateKey}`);
-          
-          const todoList = document.querySelector('.js-toDoList');
-          todoList.innerHTML = ''; // 기존 목록 클리어
-          
-          if (saved) {
-              try {
-                  const todoItems = JSON.parse(saved);
-                  todoItems.forEach(item => {
-                      if (item.text && item.text.trim()) {
-                          addTodoItem(item.text, item.isChecked || false);
-                      }
-                  });
-              } catch (e) {
-                  console.error('로컬 Todo 불러오기 실패:', e);
-              }
-          }
-      }
-      
-      async function uploadTodo() {
-          if (!dbx) {
-              alert('먼저 Dropbox에 연결해주세요');
-              return;
-          }
-          
-          try {
-              const dateKey = formatDate(selectedDate);
-              const fileName = `todo-${dateKey}.json`;
-              const payload = {
-                  date: dateKey,
-                  items: collectTodos(),
-                  savedAt: new Date().toISOString()
-              };
-              
-              await dbx.filesUpload({
-                  path: `/${fileName}`,
-                  contents: JSON.stringify(payload, null, 2),
-                  mode: { '.tag': 'overwrite' }
-              });
-              
-              alert('Todo List 저장 완료!');
-          } catch (e) {
-              console.error('Todo 업로드 실패:', e);
-              alert('Todo List 저장 실패: ' + e.message);
-          }
-      }
-      
-      async function loadTodo() {
-          if (!dbx) {
-              alert('먼저 Dropbox에 연결해주세요');
-              return;
-          }
-          
-          try {
-              const dateKey = formatDate(selectedDate);
-              const fileName = `todo-${dateKey}.json`;
-              
-              const response = await dbx.filesDownload({ path: `/${fileName}` });
-              const text = await response.result.fileBinary.text();
-              const data = JSON.parse(text);
-              
-              // 기존 todo 리스트 클리어
-              const todoList = document.querySelector('.js-toDoList');
-              todoList.innerHTML = '';
-              
-              // 저장된 todo 아이템들 추가
-              if (data.items && Array.isArray(data.items)) {
-                  data.items.forEach(item => {
-                      // 새 형식 (객체): { text, isChecked }
-                      if (typeof item === 'object' && item.text) {
-                          addTodoItem(item.text.trim(), item.isChecked || false);
-                      }
-                      // 구 형식 (문자열): "text"
-                      else if (typeof item === 'string' && item.trim()) {
-                          addTodoItem(item.trim(), false);
-                      }
-                  });
-              }
-              
-              alert('Todo List 불러오기 완료!');
-          } catch (e) {
-              if (e.status === 409) {
-                  alert('해당 날짜의 Todo List가 없습니다.');
-              } else {
-                  console.error('Todo 다운로드 실패:', e);
-                  alert('Todo List 불러오기 실패: ' + e.message);
-              }
-          }
-      }
-      
-      // Todo 아이템 추가 함수 (toDo.js 기능 통합)
-      function addTodoItem(text, isChecked = false) {
-          const todoList = document.querySelector('.js-toDoList');
-          const li = document.createElement('li');
-          
-          // 체크박스 추가
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.checked = isChecked;
-
-          const delBtn = document.createElement('button');
-          delBtn.innerText = 'X';
-          
-          const span = document.createElement('span');
-          span.innerText = text;
-
-          // 체크되어 있으면 취소선 적용
-          if (isChecked) {
-              span.style.textDecoration = 'line-through';
-          }
-
-          li.appendChild(checkbox);
-          li.appendChild(span);
-          li.appendChild(delBtn);
-          todoList.appendChild(li);
-
-          // 체크박스를 클릭했을 때, 해당 항목에 완료 스타일을 추가/제거
-          checkbox.addEventListener('click', () => {
-              span.style.textDecoration = checkbox.checked ? 'line-through' : 'none';
-              saveTodoToLocal(); // 로컬 저장
-          });
-
-          // 삭제 버튼 클릭 시 항목 삭제
-          delBtn.addEventListener('click', (event) => {
-              const li = event.target.parentElement;
-              todoList.removeChild(li);
-              saveTodoToLocal(); // 삭제 후 로컬 스토리지 갱신
-          });
-
-          saveTodoToLocal(); // 추가 후 로컬 저장
-      }
-      
-      // ======= 달력 관련 =======
-      function renderCalendar() {
-          const year = currentDate.getFullYear();
-          const month = currentDate.getMonth();
-
-          const firstDayOfMonth = new Date(year, month, 1).getDay();
-          const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
-          
-          monthYearEl.textContent = `${monthNames[month]} ${year}`;
-          calendarDatesEl.innerHTML = '';
-          
-          for (let i = 0; i < firstDayOfMonth; i++) {
-              calendarDatesEl.innerHTML += '<div></div>';
-          }
-          
-          for (let i = 1; i <= lastDateOfMonth; i++) {
-              const dayEl = document.createElement('div');
-              dayEl.textContent = i;
-              dayEl.dataset.date = formatDate(new Date(year, month, i));
-              
-              if (dayEl.dataset.date === formatDate(selectedDate)) {
-                  dayEl.classList.add('selected-date');
-              }
-
-              dayEl.addEventListener('click', () => {
-                  selectedDate = new Date(year, month, i);
-                  updateReportDisplay();
-                  renderCalendar();
-              });
-              
-              calendarDatesEl.appendChild(dayEl);
-          }
-      }
-
-      function updateReportDisplay() {
-          const dateKey = formatDate(selectedDate);
-          reportTitleEl.textContent = `Daily Report - ${dateKey}`;
-          todolistEl.textContent = `Todo List - ${dateKey}`;
-          
-          const isToday = formatDate(selectedDate) === formatDate(today);
-
-          if (isToday) {
-              reportContentEl.contentEditable = "true";
-          } else {
-              reportContentEl.contentEditable = "false";
-          }
-
-          // 로컬 저장소에서 Report 데이터 확인
-          const savedContent = localStorage.getItem(`report_${dateKey}`);
-          if (savedContent) {
-              reportContentEl.innerHTML = savedContent;
-          } else {
-              reportContentEl.innerHTML = '<p>No report for this date.</p>';
-          }
-          
-          // Todo 목록도 날짜별로 불러오기
-          loadTodoFromLocal();
-      }
-      
-      function handleTodayClick() {
-          currentDate = new Date();
-          selectedDate = new Date();
-          updateReportDisplay();
-          renderCalendar();
-      }
-      
-      // ======= 자정 리셋 기능 (toDo.js에서 가져옴) =======
-      function checkAndResetIfNewDay() {
-          const today = new Date().toDateString();
-          const lastVisit = localStorage.getItem('lastVisitDate');
-          
-          if (lastVisit !== today) {
-              // 새로운 날이면 오늘 날짜로 이동하고 오늘 데이터 로드
-              localStorage.setItem('lastVisitDate', today);
-              const todayDate = new Date();
-              
-              if (formatDate(selectedDate) !== formatDate(todayDate)) {
-                  selectedDate = todayDate;
-                  currentDate = todayDate;
-                  updateReportDisplay();
-                  renderCalendar();
-              }
-          }
-      }
-      
-      // 자정마다 체크하도록 설정
-      function setupMidnightReset() {
-          const now = new Date();
-          const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-          const msUntilMidnight = tomorrow - now;
-
-          setTimeout(() => {
-              checkAndResetIfNewDay();
-              setupMidnightReset(); // 다시 설정
-          }, msUntilMidnight);
-      }
-      connectBtnEl.addEventListener('click', connectToDropbox);
-      disconnectBtnEl.addEventListener('click', disconnectFromDropbox);
-      
-      saveBtnEl.addEventListener('click', uploadReport);
-      saveBtntdEl.addEventListener('click', uploadTodo);
-      loadBtnEl.addEventListener('click', loadReport);
-      loadBtntdEl.addEventListener('click', loadTodo);
-      
-      prevBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); });
-      nextBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(); });
-      todayBtn.addEventListener('click', handleTodayClick);
-      
-      // ======= 초기화 =======
-      document.addEventListener('DOMContentLoaded', async () => {
-          await initializeDropbox();
-          checkAndResetIfNewDay(); // 날짜 체크
-          setupMidnightReset(); // 자정 리셋 설정
-          handleTodayClick();
-          document.getElementById('year').textContent = new Date().getFullYear();
-      });
-      
-      // Todo 폼 이벤트 (기존 기능 유지)
-      const todoForm = document.querySelector('.js-toDoForm');
-      if (todoForm) {
-          const todoInput = todoForm.querySelector('input');
-          const addBtnElement = todoForm.querySelector('.js-addBtn');
-          
-          if (addBtnElement && todoInput) {
-              addBtnElement.addEventListener('click', () => {
-                  const text = todoInput.value.trim();
-                  if (text) {
-                      addTodoItem(text);
-                      todoInput.value = '';
-                  }
-              });
-              
-              todoInput.addEventListener('keypress', (e) => {
-                  if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addBtnElement.click();
-                  }
-              });
-          }
-      }
+        document.addEventListener('DOMContentLoaded', async () => {
+            await DropboxAuth.initialize();
+            CalendarManager.checkAndResetIfNewDay();
+            CalendarManager.setupMidnightReset();
+            CalendarManager.goToToday();
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
     </script>
 </body>
 </html>
