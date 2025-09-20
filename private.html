@@ -656,6 +656,18 @@
           todolistEl.textContent = `Todo List - ${dateKey}`;
           
           const isToday = formatDate(selectedDate) === formatDate(today);
+          const todoFormEl = document.querySelector('.js-toDoForm');
+          const todoInputEl = todoFormEl ? todoFormEl.querySelector('input') : null;
+          const addBtnEl   = todoFormEl ? todoFormEl.querySelector('.js-addBtn') : null;
+
+          if (todoInputEl) {
+            todoInputEl.disabled = !isToday;
+            todoInputEl.classList.toggle('input-disabled', !isToday);
+          }
+          if (addBtnEl) {
+          addBtnEl.disabled = !isToday;
+          addBtnEl.classList.toggle('btn-disabled', !isToday);
+          }
 
           if (isToday) {
               reportContentEl.contentEditable = "true";
