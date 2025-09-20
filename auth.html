@@ -3,39 +3,88 @@
 <head>
   <meta charset="utf-8" />
   <title>Dropbox Auth Callback</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
-  <style>body{font:14px/1.4 system-ui,Segoe UI,Helvetica,Arial;padding:2rem}</style>
+  <style>
+    body{font:14px/1.5 system-ui,Segoe UI,Helvetica,Arial;margin:0;padding:2rem;color:#111}
+    .box{max-width:720px;margin:0 auto}
+    .muted{color:#666}
+    code{background:#f6f8fa;padding:.1rem .3rem;border-radius:.25rem}
+  </style>
 </head>
 <body>
-  <p>Dropbox 인증 처리 중…</p>
+  <div class="box">
+    <h1 class="muted">Dropbox 인증 처리 중…</h1>
+    <p class="muted">잠시만 기다려 주세요.</p>
+    <pre id="log" class="muted"></pre>
+  </div>
   <script>
     (async () => {
-      try {
-        const APP_KEY = 'nubtwdkq9uvn2ka';
-        const REDIRECT_URI = 'https://zenllab.github.io/auth.html';
+      const logEl = document.getElementById('log');
+      const log = (m) => { if (logEl) logEl.textContent += (m + "\n"); };
 
-        const dbxAuth = new Dropbox.DropboxAuth({ clientId: APP_KEY });
-        // PKCE 코드 교환 (현재 URL의 code 파라미터 사용)
+      try {
+        // === 0) 앱/경로 설정 ===
+        const APP_KEY = 'nubtwdkq9uvn2ka';
+        // GitHub Pages 사용자 페이지(zenllab.github.io)에서 동작하는 현재 설정
+        const REDIRECT_URI = 'https://zenllab.github.io/auth.html';
+        // 인증 완료 후 돌아갈 페이지(사용자 페이지 기준). 프로젝트 페이지라면 '/<project>/private.html'로 바꾸세요.
+        const NEXT_URL = '/private.html';
+
+        // === 1) URL 파라미터에서 ?code 추출 ===
+        const params = new URL(location.href).searchParams;
+        const code = params.get('code');
+        if (!code) {
+          throw new Error('Missing ?code in callback URL');
+        }
+
+        // === 2) private.html에서 저장해 둔 code_verifier 복구 → SDK에 설정 ===
         const codeVerifier = sessionStorage.getItem('code_verifier');
         if (!codeVerifier) {
-          throw new Error("PKCE code verifier not found in session storage.");
+          throw new Error('PKCE code_verifier not found in sessionStorage');
         }
-        sessionStorage.removeItem('code_verifier');
 
-        await dbxAuth.getAccessTokenFromCode(REDIRECT_URI, window.location.href, codeVerifier);
+        const dbxAuth = new Dropbox.DropboxAuth({ clientId: APP_KEY });
+        dbxAuth.setCodeVerifier(codeVerifier); // PKCE 필수
 
-        // 세션 저장 (private.html에서 복원)
+        // === 3) Authorization Code → Access/Refresh Token 교환 ===
+        // Dropbox SDK는 getAccessTokenFromCode(redirectUri, code)를 사용합니다.
+        const tokenRes = await dbxAuth.getAccessTokenFromCode(REDIRECT_URI, code);
+        const res = tokenRes && tokenRes.result ? tokenRes.result : tokenRes;
+
+        const access_token = res && (res.access_token || dbxAuth.getAccessToken());
+        const refresh_token = res && (res.refresh_token || dbxAuth.getRefreshToken());
+        const expires_in = res && res.expires_in;
+
+        if (!access_token) {
+          throw new Error('Access token not returned');
+        }
+
+        // === 4) SDK 상태 업데이트 및 만료시간 설정 ===
+        dbxAuth.setAccessToken(access_token);
+        if (refresh_token) dbxAuth.setRefreshToken(refresh_token);
+        if (expires_in) {
+          const skew = 60; // 60초 여유
+          const exp = new Date(Date.now() + (expires_in - skew) * 1000);
+          dbxAuth.setAccessTokenExpiresAt(exp);
+        }
+
+        // === 5) 세션 저장 (private.html에서 복원) ===
         sessionStorage.setItem('dbx_auth', JSON.stringify({
           accessToken: dbxAuth.getAccessToken(),
-          refreshToken: dbxAuth.getRefreshToken(), // 'offline' 요청 시 제공
+          refreshToken: dbxAuth.getRefreshToken(),
           expiresAt:   dbxAuth.getAccessTokenExpiresAt()
         }));
 
-        // 홈으로
-        window.location.href = '/';
+        // 더 이상 필요 없는 verifier 정리
+        sessionStorage.removeItem('code_verifier');
+
+        // === 6) 원래 페이지로 리다이렉트 ===
+        location.replace(NEXT_URL);
       } catch (e) {
         console.error(e);
-        document.body.innerHTML = '<p>인증 실패: 콘솔을 확인하세요.</p>';
+        if (logEl) logEl.textContent = '인증 실패: ' + (e && e.message ? e.message : e);
+        document.body.insertAdjacentHTML('beforeend', '<p>인증 실패: 콘솔을 확인하세요.</p>');
       }
     })();
   </script>

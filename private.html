@@ -122,6 +122,25 @@
 
       // ======= Dropbox Auth =======
       const dbxAuth = new Dropbox.DropboxAuth({ clientId: APP_KEY });
+      
+      
+      function base64url(bytes){
+        return btoa(String.fromCharCode(...bytes))
+        .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      }
+      function randomVerifier(len=64){
+        const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+        const arr=new Uint32Array(len); crypto.getRandomValues(arr);
+        return Array.from(arr, v=>chars[v%chars.length]).join('');
+      }
+      async function generatePKCE(){
+        const codeVerifier = randomVerifier(64);
+        const enc = new TextEncoder();
+        const digest = await crypto.subtle.digest('SHA-256', enc.encode(codeVerifier));
+        const codeChallenge = base64url(new Uint8Array(digest));
+        return { codeVerifier, codeChallenge };
+      }
+      
 
       // 세션 저장/복원
       (function restoreAuth(){
@@ -166,16 +185,25 @@
             }
           }
         }
-
-        const pkceCodePair = dbxAuth.generatePkceCodePair();
-        sessionStorage.setItem('code_verifier', pkceCodePair.codeVerifier);
+        
+        const { codeVerifier, codeChallenge } = await generatePKCE();
+        sessionStorage.setItem('code_verifier', codeVerifier);
+        // SDK에(재진입 대비) 미리 기억시켜도 OK
+        dbxAuth.setCodeVerifier(codeVerifier);
 
         // 최초 인증: PKCE 코드 플로우(리다이렉트)
         const authUrl = await dbxAuth.getAuthenticationUrl(
-          REDIRECT_URI, undefined, 'code', 'offline', SCOPES, 'none', true,
-          undefined, undefined, pkceCodePair.codeChallenge
+          REDIRECT_URI,
+          undefined,
+          'code',          // 응답 타입
+          'offline',       // refresh token 필요 시
+          SCOPES,
+          'none',
+          true,            // usePKCE
+          undefined, undefined,
+          codeChallenge    // <-- 중요: PKCE code_challenge
         );
-        window.location.href = '/private.html';
+        window.location.href = authUrl;
       }
 
       // 날짜를 YYYY-MM-DD 형식의 문자열로 변환하는 함수
