@@ -1,4 +1,6 @@
-      // ======= 이벤트 바인딩 =======<!DOCTYPE html>
+      // ======= 환경 설정 =======
+      const APP_KEY = 'nubtwdkq9uvn2ka';
+      const REDIRECT_URI = window.location.origin + '/private.html'; // auth.html 대신 직접 처리      // ======= 이벤트 바인딩 =======<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -125,9 +127,32 @@
     </footer>
 
     <script>
-      // ======= 환경 설정 =======
-      const APP_KEY = 'nubtwdkq9uvn2ka';
-      const REDIRECT_URI = 'https://zenllab.github.io/auth.html';
+      // ======= PKCE 헬퍼 함수들 =======
+      function base64URLEncode(str) {
+          return btoa(String.fromCharCode.apply(null, str))
+              .replace(/\+/g, '-')
+              .replace(/\//g, '_')
+              .replace(/=/g, '');
+      }
+
+      function generateRandomString(length) {
+          const array = new Uint8Array(length);
+          crypto.getRandomValues(array);
+          return base64URLEncode(array);
+      }
+
+      async function sha256(plain) {
+          const encoder = new TextEncoder();
+          const data = encoder.encode(plain);
+          return window.crypto.subtle.digest('SHA-256', data);
+      }
+
+      async function generatePKCEPair() {
+          const codeVerifier = generateRandomString(32);
+          const hashed = await sha256(codeVerifier);
+          const codeChallenge = base64URLEncode(new Uint8Array(hashed));
+          return { codeVerifier, codeChallenge };
+      }
       
       // DOM 요소들
       const calendarDatesEl = document.getElementById('calendar-dates');
@@ -174,10 +199,11 @@
           });
       }
       
-      function saveTokens(accessToken, refreshToken = null) {
+      function saveTokens(accessToken, refreshToken = null, codeVerifier = null) {
           const tokenData = {
               accessToken,
               refreshToken,
+              codeVerifier,
               timestamp: Date.now()
           };
           localStorage.setItem('dropbox_tokens', JSON.stringify(tokenData));
@@ -207,7 +233,7 @@
       
       async function initializeDropbox() {
           try {
-              // URL에서 인증 코드 확인
+              // URL에서 인증 코드 확인 (이제 직접 처리)
               const urlParams = new URLSearchParams(window.location.search);
               const code = urlParams.get('code');
               
@@ -248,58 +274,45 @@
           try {
               updateAuthStatus('pending', '인증 처리 중...');
               
-              // Dropbox SDK를 사용한 토큰 교환 (더 안전한 방법)
-              const dbxAuth = new Dropbox.DropboxAuth({ clientId: APP_KEY });
+              // 저장된 code_verifier 가져오기
+              const tokens = loadTokens();
+              const codeVerifier = tokens?.codeVerifier;
               
-              try {
-                  const tokenResponse = await dbxAuth.getAccessTokenFromCode(REDIRECT_URI, code);
-                  const accessToken = tokenResponse.result.access_token;
-                  const refreshToken = tokenResponse.result.refresh_token;
+              if (!codeVerifier) {
+                  throw new Error('PKCE code_verifier를 찾을 수 없습니다. 다시 인증해주세요.');
+              }
+              
+              // PKCE를 사용한 토큰 교환
+              const response = await fetch('https://api.dropboxapi.com/oauth2/token', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                  body: new URLSearchParams({
+                      grant_type: 'authorization_code',
+                      code: code,
+                      client_id: APP_KEY,
+                      redirect_uri: REDIRECT_URI,
+                      code_verifier: codeVerifier // PKCE 필수
+                  })
+              });
+              
+              if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(`HTTP ${response.status}: ${errorText}`);
+              }
+              
+              const tokenData = await response.json();
+              
+              if (tokenData.access_token) {
+                  saveTokens(tokenData.access_token, tokenData.refresh_token);
+                  dbx = new Dropbox.Dropbox({ accessToken: tokenData.access_token });
                   
-                  if (accessToken) {
-                      saveTokens(accessToken, refreshToken);
-                      dbx = new Dropbox.Dropbox({ accessToken: accessToken });
-                      
-                      // 연결 테스트
-                      await dbx.usersGetCurrentAccount();
-                      updateAuthStatus('success', 'Dropbox 연결 성공!');
-                  } else {
-                      throw new Error('액세스 토큰을 받지 못했습니다');
-                  }
-              } catch (sdkError) {
-                  // SDK 방법이 실패하면 직접 API 호출로 폴백
-                  console.log('SDK 방법 실패, 직접 API 호출 시도:', sdkError);
-                  
-                  const response = await fetch('https://api.dropboxapi.com/oauth2/token', {
-                      method: 'POST',
-                      headers: {
-                          'Content-Type': 'application/x-www-form-urlencoded',
-                      },
-                      body: new URLSearchParams({
-                          grant_type: 'authorization_code',
-                          code: code,
-                          client_id: APP_KEY,
-                          redirect_uri: REDIRECT_URI
-                      })
-                  });
-                  
-                  if (!response.ok) {
-                      const errorText = await response.text();
-                      throw new Error(`HTTP ${response.status}: ${errorText}`);
-                  }
-                  
-                  const tokenData = await response.json();
-                  
-                  if (tokenData.access_token) {
-                      saveTokens(tokenData.access_token, tokenData.refresh_token);
-                      dbx = new Dropbox.Dropbox({ accessToken: tokenData.access_token });
-                      
-                      // 연결 테스트
-                      await dbx.usersGetCurrentAccount();
-                      updateAuthStatus('success', 'Dropbox 연결 성공!');
-                  } else {
-                      throw new Error('액세스 토큰을 받지 못했습니다');
-                  }
+                  // 연결 테스트
+                  await dbx.usersGetCurrentAccount();
+                  updateAuthStatus('success', 'Dropbox 연결 성공!');
+              } else {
+                  throw new Error('액세스 토큰을 받지 못했습니다');
               }
               
           } catch (e) {
@@ -309,15 +322,29 @@
           }
       }
       
-      function connectToDropbox() {
-          const authUrl = `https://www.dropbox.com/oauth2/authorize?` + new URLSearchParams({
-              client_id: APP_KEY,
-              response_type: 'code',
-              redirect_uri: REDIRECT_URI,
-              token_access_type: 'offline' // refresh token을 위해 추가
-          });
-          
-          window.location.href = authUrl;
+      async function connectToDropbox() {
+          try {
+              // PKCE 코드 생성
+              const { codeVerifier, codeChallenge } = await generatePKCEPair();
+              
+              // code_verifier를 임시 저장 (인증 완료 후 사용)
+              saveTokens(null, null, codeVerifier);
+              
+              // 인증 URL 생성 (PKCE 사용)
+              const authUrl = `https://www.dropbox.com/oauth2/authorize?` + new URLSearchParams({
+                  client_id: APP_KEY,
+                  response_type: 'code',
+                  redirect_uri: REDIRECT_URI,
+                  code_challenge: codeChallenge,
+                  code_challenge_method: 'S256',
+                  token_access_type: 'offline' // refresh token을 위해
+              });
+              
+              window.location.href = authUrl;
+          } catch (e) {
+              console.error('인증 URL 생성 실패:', e);
+              updateAuthStatus('error', '인증 시작 실패: ' + e.message);
+          }
       }
       
       function disconnectFromDropbox() {
