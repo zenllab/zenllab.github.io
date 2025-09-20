@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="assets/style.css">
   <script defer src="assets/script.js"></script>
   <script defer src="assets/toDo.js"></script>
+
   <!-- Dropbox JS SDK (브라우저 번들) -->
   <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
 
@@ -46,11 +47,12 @@
 
     <main class="private-wrap">
     <section id="app">
+
         <!-- Todo -->
         <div class ="Todo">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-               <h3 id="todo-list">Todo list - YYYY.MM.DD</h3> 
-               <button class="btn" id="saveBtntd">Save Todo list</button>
+               <h3 id="todo-list">Todo List - YYYY.MM.DD</h3> 
+               <button class="btn" id="saveBtntd">Save Todo List</button>
             </div>
             <form class="js-toDoForm">
             <input type="text" placeholder="Write a to do" />
@@ -95,13 +97,11 @@
     <footer class="footer">
         <div>&copy; <span id="year"></span> Zen Lab. All rights reserved.</div>
     </footer>
+
+
     <script>
 
       // ======= 환경 설정 (필수) =======
-      const APP_KEY = 'nubtwdkq9uvn2ka';                      // Dropbox App key
-      const REDIRECT_URI = 'https://zenllab.github.io/auth.html'; // Dropbox App 설정에도 동일 등록
-      const SCOPES = ['files.content.write'];              // 업로드 권한
-
       const calendarDatesEl = document.getElementById('calendar-dates');
       const monthYearEl = document.getElementById('month-year');
       const prevBtn = document.getElementById('prev-month');
@@ -111,16 +111,20 @@
       const todolistEl = document.getElementById('todo-list');
       const reportTitleEl = document.getElementById('report-title');
       const reportContentEl = document.getElementById('report-content');
+
       const saveBtntdEl = document.getElementById('saveBtntd');
       const saveBtnEl = document.getElementById('saveBtn');
 
       const today = new Date();
       let currentDate = new Date();
       let selectedDate = new Date();
-
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
+      
       // ======= Dropbox Auth =======
+      const APP_KEY = 'nubtwdkq9uvn2ka';                      // Dropbox App key
+      const REDIRECT_URI = 'https://zenllab.github.io/auth.html'; // Dropbox App 설정에도 동일 등록
+      const SCOPES = ['files.content.write', 'files.metadata.write'];              // 업로드 권한
+      
       const dbxAuth = new Dropbox.DropboxAuth({ clientId: APP_KEY });
       
       
@@ -128,11 +132,13 @@
         return btoa(String.fromCharCode(...bytes))
         .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
       }
+
       function randomVerifier(len=64){
         const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
         const arr=new Uint32Array(len); crypto.getRandomValues(arr);
         return Array.from(arr, v=>chars[v%chars.length]).join('');
       }
+
       async function generatePKCE(){
         const codeVerifier = randomVerifier(64);
         const enc = new TextEncoder();
@@ -164,7 +170,8 @@
 
       async function ensureAuth() {
         // 유효 토큰 보유 시 통과
-        if (dbxAuth.getAccessToken() && new Date() < dbxAuth.getAccessTokenExpiresAt()) return;
+        if (dbxAuth.getAccessToken() && new Date() < dbxAuth.getAccessTokenExpiresAt()) 
+        return;
 
         // 리프레시 토큰 보유 시 갱신
         if (dbxAuth.getRefreshToken()) {
@@ -172,18 +179,6 @@
           await dbxAuth.refreshAccessToken(); // 단독 갱신
           persistAuth();
           return;
-        }
-
-        async function ensureFolder(dbx, folder){
-          try {
-            await dbx.filesGetMetadata({ path: folder });
-          } catch(e){
-            if (e?.error?.path?.['.tag'] === 'not_found'){
-              await dbx.filesCreateFolderV2({ path: folder, autorename: false });
-            } else {
-              throw e;
-            }
-          }
         }
         
         const { codeVerifier, codeChallenge } = await generatePKCE();
@@ -204,6 +199,18 @@
           codeChallenge    // <-- 중요: PKCE code_challenge
         );
         window.location.href = authUrl;
+      }
+
+      async function ensureFolder(dbx, folder){
+          try {
+            await dbx.filesGetMetadata({ path: folder });
+          } catch(e){
+            if (e?.error?.path?.['.tag'] === 'not_found'){
+              await dbx.filesCreateFolderV2({ path: folder, autorename: false });
+            } else {
+              throw e;
+            }
+          }
       }
 
       // 날짜를 YYYY-MM-DD 형식의 문자열로 변환하는 함수
@@ -250,7 +257,7 @@
       function updateReportDisplay() {
           const dateKey = formatDate(selectedDate);
           reportTitleEl.textContent = `Daily Report - ${dateKey}`;
-          todolistEl.textContent = `Todo list - ${dateKey}`;
+          todolistEl.textContent = `Todo List - ${dateKey}`;
           const savedContent = localStorage.getItem(dateKey);
           
           const isToday = formatDate(selectedDate) === formatDate(today);
@@ -302,24 +309,22 @@
       }
 
     async function uploadTodo() {
-  await ensureAuth();
-  const dbx = new Dropbox.Dropbox({ auth: dbxAuth });
-
-  const dateKey = formatDate(selectedDate);
-  const parent  = `/private/${dateKey}`;
-  const path    = `${parent}/todo-${dateKey}.json`;
-
-  // 상위 폴더 보장
-  await ensureFolder(dbx, '/private');
-  await ensureFolder(dbx, parent);
-
-  const payload = { date: dateKey, items: collectTodos(), savedAt: new Date().toISOString() };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
-
-  const res = await dbx.filesUpload({ path, contents: blob, mode: { '.tag': 'overwrite' } });
-  persistAuth();
-  alert(`Todo 업로드 완료: ${res.result.path_display}`);
-}
+      await ensureAuth();
+      const dbx = new Dropbox.Dropbox({ auth: dbxAuth });
+      const dateKey = formatDate(selectedDate);
+      const parent  = `/private/${dateKey}`;
+      const path    = `${parent}/todo-${dateKey}.json`;
+      
+      // 상위 폴더 보장
+      await ensureFolder(dbx, '/private');
+      await ensureFolder(dbx, parent);
+      
+      const payload = { date: dateKey, items: collectTodos(), savedAt: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+      const res = await dbx.filesUpload({ path, contents: blob, mode: { '.tag': 'overwrite' } });
+      persistAuth();
+      alert(`Todo 업로드 완료: ${res.result.path_display}`);
+    }
 
       // ======= 이벤트 바인딩 =======
       prevBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); });
@@ -335,16 +340,6 @@
           updateReportDisplay();
           renderCalendar();
       }
-
-      prevBtn.addEventListener('click', () => {
-          currentDate.setMonth(currentDate.getMonth() - 1);
-          renderCalendar();
-      });
-
-      nextBtn.addEventListener('click', () => {
-          currentDate.setMonth(currentDate.getMonth() + 1);
-          renderCalendar();
-      });
 
      
       function saveReportLocal() {
