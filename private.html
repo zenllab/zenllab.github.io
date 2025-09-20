@@ -181,6 +181,29 @@
       let selectedDate = new Date();
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       
+      function isSameDate(a, b) {
+        return a.getFullYear() === b.getFullYear() &&
+               a.getMonth() === b.getMonth() &&
+               a.getDate() === b.getDate();
+      }
+
+      // 인증 여부+선택 날짜에 따라 버튼 표시 제어
+      function updateButtons() {
+        const connected = !!dbx;
+        const todayFlag = isSameDate(selectedDate, today);
+
+        // 불러오기 버튼: 연결되어 있으면 항상 표시
+        [loadBtnEl, loadBtntdEl].forEach(btn => {
+            if (!btn) return;
+            btn.style.display = connected ? 'inline-block' : 'none';
+        });
+
+        // 저장 버튼: 연결 + 오늘 날짜일 때만 표시
+        [saveBtnEl, saveBtntdEl].forEach(btn => {
+        if (!btn) return;
+        btn.style.display = (connected && todayFlag) ? 'inline-block' : 'none';
+        });
+      }     
       // Dropbox 인스턴스
       let dbx = null;
       
@@ -194,10 +217,7 @@
           disconnectBtnEl.style.display = isConnected ? 'inline-block' : 'none';
           
           // 저장/불러오기 버튼 표시
-          const buttonsToToggle = [saveBtnEl, saveBtntdEl, loadBtnEl, loadBtntdEl];
-          buttonsToToggle.forEach(btn => {
-              if (btn) btn.style.display = isConnected ? 'inline-block' : 'none';
-          });
+          updateButtons();
       }
       
       function saveTokens(accessToken, refreshToken = null, codeVerifier = null) {
@@ -653,6 +673,9 @@
           
           // Todo 목록도 날짜별로 불러오기
           loadTodoFromLocal();
+
+          // 날짜 변경 반영 후 버튼 갱신
+          updateButtons();
       }
       
       function handleTodayClick() {
