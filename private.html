@@ -353,6 +353,29 @@
           dbx = null;
           updateAuthStatus('error', 'Dropbox 연결 해제됨');
       }
+
+      async function getDropboxText(response) {
+        // DropboxResponse.result에 Blob이 담기는 브라우저 케이스
+        if (response?.result?.fileBlob instanceof Blob) {
+            return await response.result.fileBlob.text();
+        }
+        // 혹시 SDK/런타임에 따라 ArrayBuffer로 오는 케이스
+        if (response?.result?.fileBinary) {
+            // BufferSource 또는 ArrayBuffer 가정
+            if (typeof response.result.fileBinary.text === 'function') {
+                return await response.result.fileBinary.text();
+            }
+            if (response.result.fileBinary instanceof ArrayBuffer) {
+                return new TextDecoder('utf-8').decode(response.result.fileBinary);
+            }
+            // Uint8Array 등
+            if (ArrayBuffer.isView(response.result.fileBinary)) {
+                return new TextDecoder('utf-8').decode(response.result.fileBinary);
+            }
+        }
+        throw new Error('파일 본문을 찾지 못했습니다 (fileBlob/fileBinary 미존재).');
+      }
+
       
       // ======= 파일 업로드/다운로드 =======
       function formatDate(date) {
@@ -498,13 +521,7 @@
 
               // 응답 객체 전체를 콘솔에 출력하여 어떤 데이터가 오는지 확인
               console.log("Dropbox API 응답:", response); 
-              
-              // 파일을 읽기 전에 fileBinary가 존재하는지 먼저 확인합니다.
-              if (!response.result.fileBinary) {
-                throw new Error('파일 내용이 없거나 손상되었습니다.');
-            }
-
-              const text = await response.result.fileBinary.text();
+              const text = await getDropboxText(response);
               const data = JSON.parse(text);
               
               // 기존 todo 리스트 클리어
